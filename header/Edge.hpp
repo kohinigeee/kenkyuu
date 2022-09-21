@@ -5,7 +5,7 @@
 #include<string>
 #include"Debug.hpp"
 
-#define NONE 0
+#define NONE -1
 #define HOST 1
 #define SWITCH 2
 #define LOOP 3

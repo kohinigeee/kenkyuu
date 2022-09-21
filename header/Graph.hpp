@@ -51,13 +51,28 @@ class Graph {
         return getEdge( edge.to_type, edge.to_g, edge.to_no, edge.to_edge_no );
     }
 
-
+    int deleteHost(int, int);
     void make();
     void swing ( const Edge a1, const Edge b1 );
     void print(string, string);
     static void toDot(string fname, const Graph& graph, double _rd);
 };
 
+
+int Graph::deleteHost(int g, int no) { //消すホストの種番号、リスト番号
+    if ( g < 0 || g >= parts.size() ) return 0;
+    if ( no < 0 || no >= parts[g].get_hosts().size() ) return 0;
+
+    vector<Host>& hosts = parts[g].get_hosts();
+    Edge tail = hosts.back().getEdge(); //最後尾のホストのエッジ
+    Edge e = hosts[no].getEdge(); //削除するホストのエッジ
+    parts[e.to_g].get_switch(e.to_no).setEdge(e.to_edge_no, Edge(LOOP, e.to_g, e.to_no, e.to_edge_no)); //削除されたホストを示すエッジをLOOPにする
+
+    parts[tail.to_g].get_switch(tail.to_no).getEdge(tail.to_edge_no).to_no = no;
+    hosts[no] = hosts.back();
+    hosts.pop_back();
+    return 1;
+}
 
 void Graph::make() {
         int su = s/g, hu = h/g;

@@ -38,9 +38,7 @@ class GraphPart {
 
     inline const vector<Switch>& get_switchs() const { return switchs; }
     inline const vector<Host>& get_hosts() const { return hosts; }
-
-    //種数1のグラフの生成
-    void init();
+    inline vector<Host>& get_hosts() { return hosts; }
 
     GraphPart clone(int g_no) {
         GraphPart gp = (*this);
@@ -68,6 +66,9 @@ class GraphPart {
         return *this;
     }
 
+    
+    //種数1のグラフの生成
+    void init();
     void print(string, string);
 };
 
@@ -79,7 +80,7 @@ void GraphPart::init() {
     //ホストを均等に割り振り
     for ( int i = 0; i < h; ++i ) {
         int sno = i%s;
-        switchs[sno].setEdge(cnts[sno], Edge(HOST, g, i, NONE));
+        switchs[sno].setEdge(cnts[sno], Edge(HOST, g, i, -1));
         hosts[i].setEdge( Edge(SWITCH, g, sno, cnts[sno]));
         ++cnts[sno];
      }
