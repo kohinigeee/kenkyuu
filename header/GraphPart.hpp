@@ -69,6 +69,7 @@ class GraphPart {
     
     //種数1のグラフの生成
     void init();
+    void addHost(Switch& s, int edge_no, const Host& host);
     void print(string, string);
 };
 
@@ -122,6 +123,12 @@ void GraphPart::init() {
 
         sno = (sno+1)%s;
       }
+}
+
+void GraphPart::addHost(Switch& s, int edge_no, const Host& host ) {
+    Edge tmpe(HOST, g, hosts.size(), NONE);
+    hosts.push_back(host);
+    s.setEdge(edge_no, tmpe);
 }
 
 void GraphPart::print(string name="GraphPart", string stuff="" ) {

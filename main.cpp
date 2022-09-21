@@ -21,18 +21,17 @@ int main()
 
     // graph.print();
 
-    Edge a1 = graph.getEdge(SWITCH, 0, 0, 1);
-    Edge b1 = graph.getEdge(SWITCH, 1, 1, 2);
+    Edge a1 = graph.getEdge(SWITCH, 0, 0, 0);
+    Edge b1 = graph.getEdge(SWITCH, 0, 2, 1);
 
     graph.print("Before-Swing");
-    graph.deleteHost(0, 0);
-    // Graph::toDot("before_swing.dot", graph);
+    Graph::toDot("before_swing.dot", graph);
 
     // graph.swing(a1, b1);
     // a1 = graph.getEdge(SWITCH, 1, 2, 2);
     // b1 = graph.getEdge(SWITCH, 0, 1, 1);
-    // graph.swing(a1,b1);
-    // Graph::toDot("after_swing.dot", graph);
+    graph.swing(a1, b1);
+    Graph::toDot("after_swing.dot", graph);
     graph.print("After-Swing");
     // Edge a_to = graph.getEdge(a1);
     // cout << "a1 = "; a1.print();

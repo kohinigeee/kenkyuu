@@ -122,12 +122,19 @@ void Graph::swing ( Edge a1, Edge b1 ) {
      getSwitch( b1.to_g, b1.to_no).setEdge(b1.to_edge_no, a1);
     } else if ( type == S_Type::E1L0H1 ) {
         //ホストの操作に対応していない
+        //b2がホストになるように置換
      if ( a2.to_type == HOST ) swap<Edge>(a1, a2);
      if ( b2.to_type == HOST ) swap<Edge>(b1, b2);
      if ( a1.to_type == HOST ) {
         swap<Edge>(a1, b1);
         swap<Edge>(a2, b2);
         }
+
+    deleteHost(b1.to_g, b1.to_no);
+    getSwitch(b2.to_g, b2.to_no).setEdge(b2.to_edge_no, a2);
+    getSwitch(a2.to_g, a2.to_no).setEdge(a2.to_edge_no, b2);
+
+    parts[a1.to_g].addHost(getSwitch(a1.to_g, a1.to_no), a1.to_edge_no, Host(a1));
     } if ( type == S_Type::E1L1H0 ) {
         if ( a1.to_type == LOOP ) {
             swap<Edge>(a1, b1);
