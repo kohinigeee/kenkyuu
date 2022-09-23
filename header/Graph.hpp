@@ -66,9 +66,12 @@ int Graph::deleteHost(int g, int no) { //消すホストの種番号、リスト
     vector<Host>& hosts = parts[g].get_hosts();
     Edge tail = hosts.back().getEdge(); //最後尾のホストのエッジ
     Edge e = hosts[no].getEdge(); //削除するホストのエッジ
+
     parts[e.to_g].get_switch(e.to_no).setEdge(e.to_edge_no, Edge(LOOP, e.to_g, e.to_no, e.to_edge_no)); //削除されたホストを示すエッジをLOOPにする
 
-    parts[tail.to_g].get_switch(tail.to_no).getEdge(tail.to_edge_no).to_no = no;
+    if( no != hosts.size()-1 ) {
+        parts[tail.to_g].get_switch(tail.to_no).getEdge(tail.to_edge_no).to_no = no;
+    }
     hosts[no] = hosts.back();
     hosts.pop_back();
     return 1;
@@ -121,8 +124,7 @@ void Graph::swing ( Edge a1, Edge b1 ) {
      getSwitch( a1.to_g, a1.to_no).setEdge(a1.to_edge_no, b1);
      getSwitch( b1.to_g, b1.to_no).setEdge(b1.to_edge_no, a1);
     } else if ( type == S_Type::E1L0H1 ) {
-        //ホストの操作に対応していない
-        //b2がホストになるように置換
+
      if ( a2.to_type == HOST ) swap<Edge>(a1, a2);
      if ( b2.to_type == HOST ) swap<Edge>(b1, b2);
      if ( a1.to_type == HOST ) {
@@ -153,6 +155,15 @@ void Graph::swing ( Edge a1, Edge b1 ) {
 
         getSwitch(a1.to_g, a1.to_no).setEdge(a1.to_edge_no, b1);
         getSwitch(b1.to_g, b1.to_no).setEdge(b1.to_edge_no, a1);
+    } else if ( type == S_Type::E0L1H1 ) {
+        //b2がホストになるようswap
+        if ( a2.to_type == HOST ) swap<Edge>(a1, a2);
+        if ( b2.to_type == HOST ) swap<Edge>(b1, b2);
+        if ( a1.to_type == HOST ) { swap<Edge>(a1, b1); swap<Edge>(a2,b2); }
+
+        deleteHost(b1.to_g, b1.to_no);
+        a1.setType(SWITCH);
+        parts[a1.to_g].addHost(getSwitch(a1.to_g, a1.to_no), a1.to_edge_no, Host(a1));
     }
 }
 

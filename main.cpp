@@ -21,8 +21,8 @@ int main()
 
     // graph.print();
 
-    Edge a1 = graph.getEdge(SWITCH, 0, 0, 0);
-    Edge b1 = graph.getEdge(SWITCH, 0, 2, 1);
+    Edge a1 = graph.getEdge(SWITCH, 1, 2, 2);
+    Edge b1 = graph.getEdge(SWITCH, 0, 0, 1);
 
     graph.print("Before-Swing");
     Graph::toDot("before_swing.dot", graph);
