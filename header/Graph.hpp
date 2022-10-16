@@ -22,70 +22,83 @@ class Graph {
     const int s, h, r, g; // 合計のs, h
     vector<GraphPart> parts;
 
-    public:
-    Graph( int _s, int _h,int _r, int _g ) : s(_s), h(_h), r(_r), g(_g) {
+    Graph( int s, int h,int r, int g ) : s(s), h(h), r(r), g(g) {
+        if ( s < 0 || h < 0 || r < 0 || g < 1 ) throw IregalValueException("[Graph::constructer] Ireagal value for Graph");
+        if ( (s-1)*2+h > s*r ) throw IregalValueException("[Graph::constructer] Ireagal value for Graph ( Graph dones't exists )");
+        if ( s%g != 0 || h%g != 0 ) throw IregalValueException("[Graph::constructer] Ireagal value of g");
         parts = vector<GraphPart>();
-        make();
     }
-    
+
     void add( GraphPart& part ) { parts.push_back(part); }
 
-    inline GraphPart& getPart( int no ) { return parts[no]; }
-    inline const GraphPart& getPart( int no ) const { return parts[no]; }
-    inline Switch& getSwitch( int g_no, int node_no ) { return getPart(g_no).get_switch(node_no); }
+    public:
+
+    inline GraphPart& getPart( const G_no& g_no ) {
+        if ( g_no.getNo() >= parts.size() ) throw IregalManuplateException();
+        return parts[g_no.getNo()]; 
+    }
+    inline const GraphPart& getPart( const G_no& g_no ) const { 
+        if ( g_no.getNo() >= parts.size() ) throw IregalManuplateException();
+        return parts[g_no.getNo()];
+    }
+    inline Switch& getSwitch( const G_no& g_no, const Node_no& node_no ) { 
+        return getPart(g_no).get_switch(node_no);
+    }
     inline int getSum_s() const { return s; }
     inline int getSum_h() const{ return h; }
     inline int getSum_g() const { return g; }
     inline int get_r()  const { return r; }
 
     //指定のエッジを取り出す( type:ノードタイプ g_no:種番号 node_no:相対ノード番号 edge_no:エッジ番号)
-    inline Edge getEdge(int type, int g_no, int node_no, int edge_no = 0 ) {
-        if ( type == HOST ) {
-            return parts[g_no].get_host(node_no).getEdge();
-        } else return parts[g_no].get_switch(node_no).getEdge(edge_no);
-    }
-    //引数のエッジの終端のノードにおいて対応するエッジを抽出
-    inline Edge getEdge(const Edge& edge ) {
-        int edge_no = 0;
-        if ( edge.to_type != HOST ) edge_no = edge.to_edge_no;
-        return getEdge( edge.to_type, edge.to_g, edge.to_no, edge.to_edge_no );
+    inline Edge getEdge(Edge::edgeType type, G_no g_no, Node_no node_no, Edge_no edge_no ) {
+        if ( g_no.getNo() < 0 || g_no.getNo() >= parts.size() ) throw IregalManuplateException("[Graph::getEdge()] Ireagal value for g_no");
+        if ( type == Edge::HOST ) return parts[g_no.getNo()].get_host(node_no).getEdge();
+        if ( type == Edge::SWITCH || type == Edge::LOOP ) return parts[g_no.getNo()].get_switch(node_no).getEdge(edge_no);
+        throw IregalManuplateException("[Graph::getEdge()] Ireagal value for type");
     }
 
-    int deleteHost(int, int);
+    //引数のエッジの終端のノードにおいて対応するエッジを抽出
+    inline Edge getEdge(const Edge& edge ) {
+        Edge_no edge_no(0);
+        if ( edge.getType() == Edge::NONE ) throw IregalManuplateException("[Graph::getEdge()] Ireagal manuplate to getEdge");
+        if ( edge.getType() == Edge::LOOP ) return edge;
+        if ( edge.getType() == Edge::SWITCH ) edge_no = edge.getEdge();
+        return getEdge( edge.getType(), edge.getG(), edge.getNode(), edge.getEdge() );
+    }
+
+    int deleteHost(const G_no&, const Node_no&);
     void make();
     void swing ( const Edge a1, const Edge b1 );
     void print(string, string);
+    static Graph make(int s, int h, int r, int g);
     static void toDot(string fname, const Graph& graph, double _rd);
 };
 
 
-int Graph::deleteHost(int g, int no) { //消すホストの種番号、リスト番号
-    if ( g < 0 || g >= parts.size() ) return 0;
-    if ( no < 0 || no >= parts[g].get_hosts().size() ) return 0;
+int Graph::deleteHost(const G_no& g_no, const Node_no& node_no) { //消すホストの種番号、リスト番号
+    if ( g_no.getNo() < 0 || g_no.getNo() >= parts.size() ) return 0;
+    if ( node_no.getNo() < 0 || node_no.getNo() >= parts[g].get_hosts().size() ) return 0;
 
-    vector<Host>& hosts = parts[g].get_hosts();
-    Edge tail = hosts.back().getEdge(); //最後尾のホストのエッジ
-    Edge e = hosts[no].getEdge(); //削除するホストのエッジ
-
-    parts[e.to_g].get_switch(e.to_no).setEdge(e.to_edge_no, Edge(LOOP, e.to_g, e.to_no, e.to_edge_no)); //削除されたホストを示すエッジをLOOPにする
-
-    if( no != hosts.size()-1 ) {
-        parts[tail.to_g].get_switch(tail.to_no).getEdge(tail.to_edge_no).to_no = no;
-    }
-    hosts[no] = hosts.back();
-    hosts.pop_back();
+    parts[g_no.getNo()].deleteHost(node_no);
     return 1;
 }
 
-void Graph::make() {
-        int su = s/g, hu = h/g;
-    if ( g <= 0 ) { cout << "種数は1以上です" << endl; return; }
-    GraphPart gp(su, hu, r, 0);
+Graph Graph::make(int s, int h, int r, int g) {
+    Graph graph(s, h, r, g);
+
+    DEB() { cout << "start make Graph" << endl;}
+    int su = s/g, hu = h/g;
+    GraphPart gp(su, hu, r, G_no(0));
+    DEB() { cout << "make first GraphPart" << endl; }
     gp.init();
-        parts.push_back(gp);
+    DEB() { cout << "init finished" << endl; }
+    graph.add(gp);
     for ( int i = 1; i < g; ++i ) {
-        parts.push_back(gp.clone());
+        GraphPart addedgp = graph.parts.back().clone();
+        graph.add(addedgp);
     }
+    DEB() { cout << "make finished" << endl;}
+    return graph;
 }
 
 //単一swing処理
@@ -96,10 +109,10 @@ void Graph::swing ( Edge a1, Edge b1 ) {
      enum S_Type type = S_Type::UNDEF;
 
     int es = 0, el = 0, eh = 0;
-    if ( a1.to_type == LOOP ) ++el;
-    if ( b1.to_type == LOOP ) ++el;
-    if ( a1.to_type == HOST || a2.to_type == HOST ) ++eh;
-    if ( b1.to_type == HOST || b2.to_type == HOST ) ++eh;
+    if ( a1.getType() == Edge::LOOP ) ++el;
+    if ( b1.getType() == Edge::LOOP ) ++el;
+    if ( a1.getType() == Edge::HOST || a2.getType() == Edge::HOST ) ++eh;
+    if ( b1.getType() == Edge::HOST || b2.getType() == Edge::HOST ) ++eh;
     es = 2-(el+eh);
 
     
@@ -118,54 +131,56 @@ void Graph::swing ( Edge a1, Edge b1 ) {
 
     if ( type == S_Type::E0L0H2 ) return;
     if ( type == S_Type::E2L0H0 ) {
-     getSwitch( a2.to_g, a2.to_no).setEdge(a2.to_edge_no, b2);
-     getSwitch( b2.to_g, b2.to_no).setEdge(b2.to_edge_no, a2);
+     getSwitch( a2.getG(), a2.getNode()).setEdge(a2.getEdge(), b2);
+     getSwitch( b2.getG(), b2.getNode()).setEdge(b2.getEdge(), a2);
 
-     getSwitch( a1.to_g, a1.to_no).setEdge(a1.to_edge_no, b1);
-     getSwitch( b1.to_g, b1.to_no).setEdge(b1.to_edge_no, a1);
+     getSwitch( a1.getG(), a1.getNode()).setEdge(a1.getEdge(), b1);
+     getSwitch( b1.getG(), b1.getNode()).setEdge(b1.getEdge(), a1);
     } else if ( type == S_Type::E1L0H1 ) {
 
-     if ( a2.to_type == HOST ) swap<Edge>(a1, a2);
-     if ( b2.to_type == HOST ) swap<Edge>(b1, b2);
-     if ( a1.to_type == HOST ) {
+     if ( a2.getType() == Edge::HOST ) swap<Edge>(a1, a2);
+     if ( b2.getType() == Edge::HOST ) swap<Edge>(b1, b2);
+     if ( a1.getType() == Edge::HOST ) {
         swap<Edge>(a1, b1);
         swap<Edge>(a2, b2);
         }
 
-    deleteHost(b1.to_g, b1.to_no);
-    getSwitch(b2.to_g, b2.to_no).setEdge(b2.to_edge_no, a2);
-    getSwitch(a2.to_g, a2.to_no).setEdge(a2.to_edge_no, b2);
+    deleteHost(b1.getG(), b1.getNode());
+    getSwitch(b2.getG(), b2.getNode()).setEdge(b2.getEdge(), a2);
+    getSwitch(a2.getG(), a2.getNode()).setEdge(a2.getEdge(), b2);
 
-    parts[a1.to_g].addHost(getSwitch(a1.to_g, a1.to_no), a1.to_edge_no, Host(a1));
+    getPart(a1.getG()).addHost(a1.getNode(), a1.getEdge());
+    // parts[a1.to_g].addHost(getSwitch(a1.to_g, a1.to_no), a1.to_edge_no, Host(a1));
     } if ( type == S_Type::E1L1H0 ) {
-        if ( a1.to_type == LOOP ) {
+        if ( a1.getType() == Edge::LOOP ) {
             swap<Edge>(a1, b1);
             swap<Edge>(a2, b2);
         }
         //b1,b2が自己ループ
-        b1.setType(SWITCH);
-        getSwitch(b1.to_g, b1.to_no).setEdge(b1.to_edge_no, a2);
-        getSwitch(a2.to_g, a2.to_no).setEdge(a2.to_edge_no, b1);
+        b1.setType(Edge::SWITCH); //修正?
+        getSwitch(b1.getG(), b1.getNode()).setEdge(b1.getEdge(), a2);
+        getSwitch(a2.getG(), a2.getNode()).setEdge(a2.getEdge(), b1);
 
-        a1.setType(LOOP);
-        getSwitch(a1.to_g, a1.to_no).setEdge(a1.to_edge_no, a1);
+        a1.setType(Edge::LOOP);
+        getSwitch(a1.getG(), a1.getNode()).setEdge(a1.getEdge(), a1);
     } else if ( type == S_Type::E0L2H0 ) {
-        a1.setType(SWITCH);
-        b1.setType(SWITCH);
+        a1.setType(Edge::SWITCH);
+        b1.setType(Edge::SWITCH);
 
-        getSwitch(a1.to_g, a1.to_no).setEdge(a1.to_edge_no, b1);
-        getSwitch(b1.to_g, b1.to_no).setEdge(b1.to_edge_no, a1);
+        getSwitch(a1.getG(), a1.getNode()).setEdge(a1.getEdge(), b1);
+        getSwitch(b1.getG(), b1.getNode()).setEdge(b1.getEdge(), a1);
     } else if ( type == S_Type::E0L1H1 ) {
         //b2がホストになるようswap
-        if ( a2.to_type == HOST ) swap<Edge>(a1, a2);
-        if ( b2.to_type == HOST ) swap<Edge>(b1, b2);
-        if ( a1.to_type == HOST ) { swap<Edge>(a1, b1); swap<Edge>(a2,b2); }
+        if ( a2.getType() == Edge::HOST ) swap<Edge>(a1, a2);
+        if ( b2.getType() == Edge::HOST ) swap<Edge>(b1, b2);
+        if ( a1.getType() == Edge::HOST ) { swap<Edge>(a1, b1); swap<Edge>(a2,b2); }
 
-        deleteHost(b1.to_g, b1.to_no);
-        a1.setType(SWITCH);
-        parts[a1.to_g].addHost(getSwitch(a1.to_g, a1.to_no), a1.to_edge_no, Host(a1));
+        deleteHost(b1.getG(), b1.getNode());
+        a1.setType(Edge::SWITCH);
+        getPart(a1.getG()).addHost(a1.getNode(), a1.getEdge());
     }
 }
+
 
 void Graph::print(string name = "Graph", string stuff="" ) {
     string tmp = stuff+"   ";
@@ -252,9 +267,10 @@ void Graph::toDot( string fname, const Graph& graph, double _rd = 3 ) {
             for ( int k = 0; k < graph.r; ++k ) {
                 const Edge& e = sw.getEdge(k);
 
-                if ( e.to_type != SWITCH ) continue;
-                if ( visited[e.to_g][e.to_no] ) continue;
-                int no_abs = e.to_g*s+e.to_no;
+                if ( e.getType() != Edge::SWITCH ) continue;
+                int to_g = e.getG().getNo(), to_node = e.getNode().getNo();
+                if ( visited[to_g][to_node] ) continue;
+                int no_abs = to_g*s+to_node;
                 sprintf_s(str, "\t%d--%d\n", sno_abs, no_abs);
                 ofs << str;
             }

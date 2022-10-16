@@ -12,16 +12,17 @@ class Host {
     Edge e; //スイッチへの辺
 
     public:
-    Host(Edge _e ) : e(_e) {
-    }
+    Host(const Edge& e = Edge::makeNone()) : e(e) {}
 
-    Host() {}
-
-    inline void setEdge(Edge _e ) { e = _e; }
     inline const Edge& getEdge() const { return e; }
     inline Edge& getEdge() { return e; }
 
-    Host& operator= (const Host& h ){
+    void setEdge (const Edge& e1 ) { 
+        if ( e1.getType() != Edge::SWITCH ) throw IregalValueException("[Host::setEdge()] Ireagal value of e.type");
+        this->e = e1;
+    }
+
+    Host& operator= (const Host& h ) {
         e = h.getEdge();
         return *this;
     }
@@ -34,38 +35,37 @@ void Host::print( string name="Host", string stuff="")  {
     cout << stuff << '[' << name << "]" << "  "; e.print("Edge h");
 }
 
-bool operator< (const Host& h1, const Host& h2 ) {
-    return (h1.getEdge() < h2.getEdge() );
-}
-
-
 class Switch {
-    int r; //r:スイッチの接続上限、s:スイッチの絶対番号
+    int r; //r:スイッチの接続上限
     int h; //スイッチが接続しているホストの数
     int loop; //自己ループ(つまり使用していないポートの数)
     vector<Edge> edges; //スイッチが持つ辺を管理する配列
 
     public:
-    Switch( int r1 ) : r(r1) {
-        edges = vector<Edge>(r1);
+    Switch( int r ) : r(r) {
+        if ( r < 0 ) throw IregalValueException("[Switch::constructer] r(port no) is not minus");
+        edges = vector<Edge>(r, Edge::makeNone());
         h = 0;
         loop = 0;
     }
 
-    void setEdge( int no, Edge edge ) {
-        if ( edges[no].to_type == HOST ) --h;
-        if ( edges[no].to_type == LOOP ) --loop;
+    void setEdge( const Edge_no& e_no, const Edge& edge ) {
+        int no = e_no.getNo();
+
+        if ( no >= r ) throw IregalManuplateException("[Switch::setEdge()] iregal no of Edges");
+        if ( edges[no].getType() == Edge::HOST ) --h;
+        if ( edges[no].getType() == Edge::LOOP ) --loop;
         edges[no] = edge;
-        if ( edge.to_type == HOST ) ++h;
-        if ( edge.to_type == LOOP ) ++loop;
+        if ( edge.getType() == Edge::HOST ) ++h;
+        if ( edge.getType() == Edge::LOOP ) ++loop;
     }
 
     inline int get_hsize() const { return h; }
     inline int get_r() const { return r; }
     inline int get_loop() const { return loop; }
 
-    inline Edge& getEdge( int no ) { return edges[no]; }
-    inline const Edge& getEdge( int no ) const{ return edges[no]; }
+    inline Edge& getEdge( Edge_no no ) { return edges[no.getNo()]; }
+    inline const Edge& getEdge( Edge_no no ) const{ return edges[no.getNo()]; }
     inline const vector<Edge> getEdges() const { return edges; }
 
     Switch& operator=( const Switch& sw ) {

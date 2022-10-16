@@ -4,47 +4,179 @@
 #include<iostream>
 #include<string>
 #include"Debug.hpp"
-
-#define NONE -1
-#define HOST 1
-#define SWITCH 2
-#define LOOP 3
+#include"Exeception.hpp"
 
 using namespace std;
 
-class Edge {
+class G_no {
+    int g_no;
 
     public:
-    int to_type, to_g, to_no, to_edge_no;
+    G_no( const int no ) : g_no(no) {
+        if ( no < 0 ) throw IregalValueException("[G_no::constructer] g_noは非負整数");
+    }
+    G_no() { G_no(0); }
+
+    int inline getNo() const { return g_no; }
+
+    G_no& operator= (const G_no& g ) {
+        this->g_no = g.getNo();
+        return (*this);
+    }
+
+    bool operator== ( const G_no& g ) {
+        return this->g_no == g.getNo();
+    }
+
+    bool operator!= ( const G_no& g ) {
+        return !(*this == g);
+    }
+};
+
+class Node_no {
+    int node_no;
+
+    public:
+    Node_no( const int no ) : node_no(no) {
+        if ( no < 0 ) throw IregalValueException("[Node_no::constructer] node_noは非負整数");
+    }
+    Node_no() { Node_no(0); }
+
+    int inline getNo() const { return node_no; }
+
+    Node_no& operator= (const Node_no& node ) {
+        this->node_no = node.getNo();
+        return (*this);
+    }
+
+    bool operator== (const Node_no& node ) {
+        return this->node_no == node.getNo();
+    }
+
+    bool operator!= (const Node_no& node ) {
+        return !(*this != node);
+    }
+};
+
+class Edge_no {
+    int edge_no;
+
+    public:
+    Edge_no ( const int no ) : edge_no(no) {
+        if ( no < 0 ) throw IregalValueException("[Edge_no::constructer] edge_noは非負整数");
+    }
+    Edge_no () { Edge_no(0); }
+    int inline getNo() const { return edge_no; }
+
+    Edge_no& operator= (const Edge_no& edge) {
+        this->edge_no = edge.getNo();
+        return(*this);
+    }
+
+    bool operator== (const Edge_no& edge ) {
+        return this->edge_no == edge.getNo();
+    }
+
+    bool operator!= (const Edge_no& edge ) {
+        return !(*this == edge);
+    }
+};
+
+class Edge {
+    static const Edge_no hostDefaultEdge;
+    static const Edge_no noneDefaultEdge;
+    static const Node_no noneDefaultNode;
+    static const G_no noneDefaultG;
+
+    public:
+     enum edgeType {
+        NONE, HOST, SWITCH, LOOP
+    };
+
+    private:
+    edgeType to_type;
+    G_no to_g;
+    Node_no to_node;
+    Edge_no to_edge;
     // to_type : 終点のノードのタイプ
     // to_g : 終点のノードが属する種の番号
     // to_no : 終点のノードの種内でのノード番号
     //    (HOST の場合はGraphPart(hosts)内でのインデックスをあらわす)
     // to_edge_no : 終点のノード内のエッジ番号 (ホストに対する場合は-1)
 
-    Edge(int type, int g, int no, int edge_no ) : to_type(type), to_g(g), to_no(no), to_edge_no(edge_no) {
-        
-    }
-    Edge() { Edge(-1, -1, -1, -1); }
 
-    void inline setType(int type ) {
-        this->to_type = type;
+    Edge( edgeType type, G_no g, Node_no node, Edge_no edge ) : to_type(type), to_g(g), to_node(node), to_edge(edge) {}
+
+    public:
+    Edge() { (*this) = Edge::makeNone(); }
+
+    Edge static inline makeToSwitich( const G_no g_no, const Node_no node_no,const Edge_no edge_no ) {
+        return Edge(SWITCH, g_no, node_no, edge_no );
     }
 
-    Edge& operator= (const Edge& e ) {
-        to_type = e.to_type;
-        to_g = e.to_g;
-        to_no = e.to_no;
-        to_edge_no = e.to_edge_no;
+    Edge static inline makeToHost( const G_no g_no, const Node_no node_no ) {
+        return Edge(HOST, g_no, node_no, hostDefaultEdge);
+    }
+
+    Edge static inline makeToLoop( const G_no g_no, const Node_no node_no, const Edge_no edge_no ) {
+        return Edge(LOOP, g_no, node_no, edge_no);
+    }
+
+    Edge static inline makeNone() {
+        return Edge(NONE, noneDefaultG, noneDefaultNode, noneDefaultEdge);
+    }
+
+    edgeType inline getType() const;
+    G_no inline getG() const;
+    Node_no inline getNode() const;
+    Edge_no inline getEdge() const;
+
+    void inline setG(const G_no& g ) { this->to_g = g; }
+    void inline setType( Edge::edgeType type ) { this->to_type = type; }
+
+    // Edge inline setType( edgeType type ) {
+    //     switch ( type ) {
+    //         case SWITCH:
+    //     }
+    // }
+
+    Edge& operator=(const Edge& e) {
+        this->to_type = e.to_type;
+        this->to_g = e.to_g;
+        this->to_node = e.to_node;
+        this->to_edge = e.to_edge;
         return *this;
     }
 
     void print(string, string);
 };
 
+const Edge_no Edge::hostDefaultEdge = Edge_no(0);
+const Edge_no Edge::noneDefaultEdge = Edge_no(0);
+const Node_no Edge::noneDefaultNode = Node_no(0);
+const G_no Edge::noneDefaultG = G_no(0);
+
+Edge::edgeType inline Edge::getType() const { return to_type; }
+
+G_no inline Edge::getG() const { 
+    if ( to_type == NONE )  throw IregalManuplateException("[Edge::getG()] his Edge have no 'to_g");
+    return to_g; }
+
+Node_no inline Edge::getNode() const { 
+    if ( to_type == NONE )  throw IregalManuplateException("[Edge::getNode()] This Edge have no 'to_node");
+    return to_node; }
+
+Edge_no inline Edge::getEdge() const { 
+    if ( to_type == NONE || to_type == HOST ) throw IregalManuplateException("[Edge::getEdge()] This Edge have no 'to_edge"); 
+    return to_edge;
+    }
+
 void Edge::print(string name="Edge", string stuff = "") {
     string type;
     string tmp = stuff;
+    string s_no = (to_type != NONE ) ? to_string(to_node.getNo()) : "-";
+    string s_g =  (to_type != NONE ) ? to_string(to_g.getNo()) : "-";
+    string s_edge_no = ( to_type != NONE && to_type != HOST ) ? to_string(to_edge.getNo()) : "-";
 
     switch (to_type ) {
      case(HOST):
@@ -65,18 +197,11 @@ void Edge::print(string name="Edge", string stuff = "") {
 
     tmp += '[' + name + "]{";
     tmp += " [to_type]: "+type;
-    tmp += "  [to_g]: "+to_string(to_g);
-    tmp += "  [to_no]: "+to_string(to_no);
-    tmp += "  [to_edge_no]: "+to_string(to_edge_no);
+    tmp += "  [to_g]: "+ s_g;
+    tmp += "  [to_no]: "+ s_no;
+    tmp += "  [to_edge_no]: "+ s_edge_no;
     tmp += " }";
     cout << tmp << endl;
-}
-
-bool operator<(const Edge& e, const Edge& e2 ) {
-    if ( e.to_type != e2.to_type ) return e.to_type < e2.to_type;
-    if ( e.to_g != e2.to_g) return e.to_g < e2.to_g;
-    if ( e.to_no != e2.to_no ) return e.to_no < e2.to_no;
-    return e.to_edge_no < e2.to_edge_no;
 }
 
 #endif

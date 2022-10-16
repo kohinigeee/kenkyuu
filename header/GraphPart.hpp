@@ -7,56 +7,83 @@
 
 //一つの種を表すクラス
 class GraphPart {
-    int s, h, g; //s : スイッチ数, h:ホスト数, g:種の番号
+    int s, h; //s : スイッチ数, h:ホスト数, g:種の番号
     int r;
+    G_no g;
     vector<Switch> switchs;
     vector<Host> hosts;
 
     public:
-    GraphPart(int s1, int h1, int r1, int g1 = 0) : s(s1), h(h1), r(r1), g(g1) {
-    // s_start : スイッチの絶対番号の最初の番号
-    // h_start : ホストの絶対番号の最初の番号
+    GraphPart(const int s, const int h, const int r, const G_no& g) : s(s), h(h), r(r), g(g) {
+        DEB() { 
+            cout << "constructer GraphPart" << endl;
+            cout << "s = " << s << ", h = " << h << ", r = " << r << endl; }
+        if ( s < 0 ) throw IregalValueException("[GraphPart::constructer] Ireagal value of s");
+        if ( r < 0 ) throw IregalValueException("[GraphPart::constructer] Ireagal value of r");
+        if ( h < 0 ) throw IregalValueException("[GraphPart::constructer] Ireagal value of h");
+        if ( s*r < h ) throw IregalValueException("[GraphPart::constructer] Ireagal values for Graph");
 
-        for ( int i = 0; i < s1; ++i ) {
+        switchs = vector<Switch>();
+        hosts = vector<Host>();
+        for ( int i = 0; i < s; ++i ) {
             switchs.push_back(Switch(r));
         }
-        for ( int i = 0; i < h1; ++i ) hosts.push_back(Host());
+        for ( int i = 0; i < h; ++i ) {
+            DEB() { cout << "i = " << i << endl;}
+            hosts.push_back(Host());
+        }
     }
 
     inline int get_hsize() const { return h; }
     inline int get_ssize() const { return s; }
-    inline int get_gno() const { return g; }
     inline int get_r() const { return r; }
+    inline G_no get_gno() const { return g; }
 
-    inline void set_gno( int g_no ) { g = g_no; }
+    inline void set_gno( const G_no& g_no ) { 
+        if ( g_no.getNo() < 0 ) throw IregalValueException("[GraphPart::set_gno()] Iregal value of g_no");
+        g = g_no;
+    }
 
-    inline Host& get_host(int no) { return hosts[no];}
-    inline const Host& get_host(int no ) const { return hosts[no]; }
+    inline Host& get_host( const Node_no& no) { 
+        if ( no.getNo() < 0 || no.getNo() >= hosts.size() ) throw IregalManuplateException();
+        return hosts[no.getNo()];
+    }
+    inline const Host& get_host( const Node_no& no ) const { 
+        if ( no.getNo() < 0 || no.getNo() >= hosts.size() ) throw IregalManuplateException();
+        return hosts[no.getNo()];
+    }
 
-    inline Switch& get_switch(int no ) { return switchs[no]; }
-    inline const Switch& get_switch(int no ) const { return switchs[no]; }
+    inline Switch& get_switch(const Node_no& no) {
+        if ( no.getNo() < 0 || no.getNo() >= switchs.size() ) throw IregalManuplateException();
+        return switchs[no.getNo()];
+    }
+    inline const Switch& get_switch(const Node_no& no) const {
+        if ( no.getNo() < 0 || no.getNo() >= switchs.size() ) throw IregalManuplateException();
+        return switchs[no.getNo()];
+    }
 
     inline const vector<Switch>& get_switchs() const { return switchs; }
     inline const vector<Host>& get_hosts() const { return hosts; }
-    inline vector<Host>& get_hosts() { return hosts; }
 
-    GraphPart clone(int g_no) {
+    GraphPart clone(G_no g_no) {
         GraphPart gp = (*this);
         for ( int i = 0; i < s; ++i ) {
             Switch& sw = gp.get_switch(i);
             for ( int j = 0; j < sw.get_r(); ++j ) {
-                sw.getEdge(j).to_g = g_no;
+                Edge& e = sw.getEdge(Edge_no(j));
+                e.setG(g_no);
             }
         }
 
         for ( int i = 0; i < h; ++i ) {
-        gp.get_host(i).getEdge().to_g = g_no;
+            Edge& e = gp.get_host(i).getEdge();
+            e.setG(g_no);
         }
         gp.set_gno(g_no);
         return gp;
     }
 
-    GraphPart clone() { return (*this).clone(g+1); }
+    GraphPart clone() { return (*this).clone(G_no(g.getNo()+1)); }
 
     GraphPart& operator= (const GraphPart& gp ) {
         s = gp.get_ssize(); h = gp.get_hsize(); g = gp.get_gno();
@@ -66,28 +93,33 @@ class GraphPart {
         return *this;
     }
 
-    
     //種数1のグラフの生成
     void init();
-    void addHost(Switch& s, int edge_no, const Host& host);
+    bool isRightEdge(const Edge&);
+    Host& addHost(const Node_no&, const Edge_no&);
+    void deleteHost( const Node_no&);
     void print(string, string);
 };
 
 //種数1のグラフの生成
 void GraphPart::init() {
-    if ( s*r <= h ) { cout << "ホスト数が総ポート数以上です" << endl;return; }
+    if ( s*r <= h ) { cout << "ホスト数が総ポート数以上です" << endl; return; }
     vector<int> cnts(s, 0);
+
+    DEB() { cout << "GraphPart::init()" << endl;}
 
     //ホストを均等に割り振り
     for ( int i = 0; i < h; ++i ) {
         int sno = i%s;
-        switchs[sno].setEdge(cnts[sno], Edge(HOST, g, i, -1));
-        hosts[i].setEdge( Edge(SWITCH, g, sno, cnts[sno]));
+        DEB() { cout << "i =" << i << endl;}
+        switchs[sno].setEdge(Edge_no(cnts[sno]), Edge::makeToHost(g, Node_no(i)));
+        hosts[i].setEdge( Edge::makeToSwitich(g, Node_no(sno), Edge_no(cnts[sno])));
         ++cnts[sno];
      }
 
 
-     int sum_cnt = 0;
+    DEB() { cout << "GraphPart::init() " << endl;}
+    int sum_cnt = 0;
     for ( auto v: cnts ) sum_cnt += v;
 
     int sno = 0;
@@ -98,8 +130,8 @@ void GraphPart::init() {
         if ( cnts[sno] >= r ) { sno = (sno+1)%s; continue; }
 
         if ( cnts[rno] < r ) {
-            switchs[sno].setEdge(cnts[sno], Edge(SWITCH, g, rno, cnts[rno]));
-               switchs[rno].setEdge(cnts[rno], Edge(SWITCH, g, sno, cnts[sno]));
+            switchs[sno].setEdge(cnts[sno], Edge::makeToSwitich(g, Node_no(rno), Edge_no(cnts[rno])));
+            switchs[rno].setEdge(cnts[rno], Edge::makeToSwitich(g, Node_no(sno), Edge_no(cnts[sno])));
             ++cnts[rno]; ++cnts[sno];
                 sum_cnt += 2;
            }
@@ -108,27 +140,63 @@ void GraphPart::init() {
         if ( lno < 0 ) sno += s;
 
         if ( cnts[lno] < r ) {
-                switchs[sno].setEdge(cnts[sno], Edge(SWITCH, g, lno, cnts[lno]));
-            switchs[lno].setEdge(cnts[lno], Edge(SWITCH, g, sno, cnts[sno]));
-            ++cnts[lno]; ++cnts[sno];
+            switchs[sno].setEdge(cnts[sno], Edge::makeToSwitich(g, Node_no(lno), Edge_no(cnts[lno])));
+            switchs[lno].setEdge(cnts[lno], Edge::makeToSwitich(g, Node_no(sno), Edge_no(cnts[sno])));
             sum_cnt += 2;
         }
 
         //あまりは自己ループにする
         while ( cnts[sno] < r ) {
-            switchs[sno].setEdge(cnts[sno], Edge(LOOP, g, sno, cnts[sno]));
+            switchs[sno].setEdge(cnts[sno], Edge::makeToLoop(g, Node_no(sno), Edge_no(cnts[sno])));
             cnts[sno]++;
             sum_cnt += 1;
         }
 
         sno = (sno+1)%s;
       }
+} 
+
+/*Switch辺以外の正誤判定
+*/
+bool GraphPart::isRightEdge ( const Edge& edge ) {
+    if ( edge.getType() == Edge::NONE ) return false;
+    if ( edge.getType() == Edge::HOST ) {
+        if ( edge.getG() != this->g ) return false;
+        if ( edge.getNode().getNo() >= this->hosts.size() ) return false;
+        return true;
+    }
+    if ( edge.getType() == Edge::LOOP ) {
+        if ( edge.getG() != this->g ) return false;
+        if ( edge.getNode().getNo() >= this->switchs.size() )return false;
+        if ( edge.getEdge().getNo() >= get_switch(edge.getNode()).get_r() ) return false;
+        return true;
+    }
+    return true;
 }
 
-void GraphPart::addHost(Switch& s, int edge_no, const Host& host ) {
-    Edge tmpe(HOST, g, hosts.size(), NONE);
+Host&  GraphPart::addHost(const Node_no& s_no, const Edge_no& edge_no) { //ホストを追加するスイッチのノード番号とエッジ番号
+    const int node_no = s_no.getNo();
+    if( node_no < 0 || node_no >= s ) throw IregalValueException("[GraphPart::addHost()] Iregal s_no");
+    if( edge_no.getNo() >= switchs[node_no].get_r() ) throw IregalValueException("[GraphPart::addHost()] Iregal edge_no");
+    Host host = Edge::makeToHost(G_no(g), Node_no(hosts.size()) );
+    switchs[node_no].setEdge(edge_no, Edge::makeToHost(g, Node_no(hosts.size())));
     hosts.push_back(host);
-    s.setEdge(edge_no, tmpe);
+    h = hosts.size();
+    return hosts.back();
+}
+
+
+ void GraphPart::deleteHost(const Node_no& h_no ) { //削除するホストの番号
+    if ( h_no.getNo() >= hosts.size() ) throw IregalManuplateException("[GraphPart::deleteHost()] Ireagal h_no to deleteHost");
+    Edge tailedHost = hosts.back().getEdge();
+    Edge delHostEdge = get_host(h_no).getEdge();
+    Switch& switchBydel = get_switch(delHostEdge.getNode());
+    Switch& switchFortail = get_switch(tailedHost.getNode());
+    switchFortail.setEdge(tailedHost.getEdge(), Edge::makeToHost(g, h_no));
+    switchBydel.setEdge(delHostEdge.getEdge(), Edge::makeToLoop(delHostEdge.getG(), delHostEdge.getNode(), delHostEdge.getEdge()) );
+    hosts[h_no.getNo()] = hosts.back();
+    hosts.pop_back();
+    h = hosts.size();
 }
 
 void GraphPart::print(string name="GraphPart", string stuff="" ) {
@@ -137,7 +205,7 @@ void GraphPart::print(string name="GraphPart", string stuff="" ) {
     for ( int i = 0; i < 70; ++i ) arrow += "-";
 
     cout << stuff << '[' << name << "]<"+arrow << endl;
-    cout << tmp << "s=" << s << " h=" << h << " g_no=" << g << " r=" << r <<endl;
+    cout << tmp << "s=" << s << " h=" << h << " g_no=" << g.getNo() << " r=" << r <<endl;
 
     for ( int i = 0; i < switchs.size(); ++i ) {
         switchs[i].print("Switch "+to_string(i), tmp);
