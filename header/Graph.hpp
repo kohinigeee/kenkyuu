@@ -7,6 +7,7 @@
 #include<fstream>
 #include<string>
 #include<cmath>
+#include<queue>
 
 class Graph {
     enum S_Type {
@@ -51,6 +52,7 @@ class Graph {
 
     //指定のエッジを取り出す( type:ノードタイプ g_no:種番号 node_no:相対ノード番号 edge_no:エッジ番号)
     inline Edge getEdge(Edge::edgeType type, G_no g_no, Node_no node_no, Edge_no edge_no ) {
+        DEB() { cout << "[Log] Graph::getEdge()" << endl;}
         if ( g_no.getNo() < 0 || g_no.getNo() >= parts.size() ) throw IregalManuplateException("[Graph::getEdge()] Ireagal value for g_no");
         if ( type == Edge::HOST ) return parts[g_no.getNo()].get_host(node_no).getEdge();
         if ( type == Edge::SWITCH || type == Edge::LOOP ) return parts[g_no.getNo()].get_switch(node_no).getEdge(edge_no);
@@ -59,16 +61,18 @@ class Graph {
 
     //引数のエッジの終端のノードにおいて対応するエッジを抽出
     inline Edge getEdge(const Edge& edge ) {
-        Edge_no edge_no(0);
+        DEB() { cout << "[Log] Graph::getEdge(edge)" << endl;}
         if ( edge.getType() == Edge::NONE ) throw IregalManuplateException("[Graph::getEdge()] Ireagal manuplate to getEdge");
         if ( edge.getType() == Edge::LOOP ) return edge;
-        if ( edge.getType() == Edge::SWITCH ) edge_no = edge.getEdge();
+        if ( edge.getType() == Edge::HOST ) return getEdge( edge.getType(), edge.getG(), edge.getNode(), Edge_no(0));
         return getEdge( edge.getType(), edge.getG(), edge.getNode(), edge.getEdge() );
     }
 
     int deleteHost(const G_no&, const Node_no&);
     void make();
-    void swing ( const Edge a1, const Edge b1 );
+    void simple_swing ( const Edge a1, const Edge b1 );
+    void swing(const Edge& a1, const Edge& b1);
+    vector<vector< long long>> calcBFS( const long long INF );
     void print(string, string);
     static Graph make(int s, int h, int r, int g);
     static void toDot(string fname, const Graph& graph, double _rd);
@@ -102,12 +106,13 @@ Graph Graph::make(int s, int h, int r, int g) {
 }
 
 //単一swing処理
-void Graph::swing ( Edge a1, Edge b1 ) {
-    DEB() { cout << "swing() " << endl; }
+void Graph::simple_swing ( Edge a1, Edge b1 ) {
+    DEB() { cout << "[Log]Graph::simple_swing() " << endl; }
      Edge a2 = getEdge(a1);
      Edge b2 = getEdge(b1);
      enum S_Type type = S_Type::UNDEF;
 
+    DEB() { cout << "test" << endl;}
     int es = 0, el = 0, eh = 0;
     if ( a1.getType() == Edge::LOOP ) ++el;
     if ( b1.getType() == Edge::LOOP ) ++el;
@@ -123,20 +128,16 @@ void Graph::swing ( Edge a1, Edge b1 ) {
     else if ( es == 1 && eh == 1 ) type = S_Type::E1L0H1;
     else if ( el == 1 && eh == 1 ) type = S_Type::E0L1H1;
 
-    cout << "a1: "; a1.print();
-    cout << "a2: "; a2.print();
-    cout << "b1: "; b1.print();
-    cout << "b2: "; b2.print(); 
-    cout << "swing: type = " << type << endl;
-
     if ( type == S_Type::E0L0H2 ) return;
     if ( type == S_Type::E2L0H0 ) {
+        cout << "[Log] simple_edge::E2L0H0" << endl;
      getSwitch( a2.getG(), a2.getNode()).setEdge(a2.getEdge(), b2);
      getSwitch( b2.getG(), b2.getNode()).setEdge(b2.getEdge(), a2);
 
      getSwitch( a1.getG(), a1.getNode()).setEdge(a1.getEdge(), b1);
      getSwitch( b1.getG(), b1.getNode()).setEdge(b1.getEdge(), a1);
     } else if ( type == S_Type::E1L0H1 ) {
+        DEB() { cout << "[Log] simple_edge::E1L0H1"; }
 
      if ( a2.getType() == Edge::HOST ) swap<Edge>(a1, a2);
      if ( b2.getType() == Edge::HOST ) swap<Edge>(b1, b2);
@@ -152,6 +153,7 @@ void Graph::swing ( Edge a1, Edge b1 ) {
     getPart(a1.getG()).addHost(a1.getNode(), a1.getEdge());
     // parts[a1.to_g].addHost(getSwitch(a1.to_g, a1.to_no), a1.to_edge_no, Host(a1));
     } if ( type == S_Type::E1L1H0 ) {
+        DEB() { cout << "[Log] simple_swing::E1L1H0" << endl; }
         if ( a1.getType() == Edge::LOOP ) {
             swap<Edge>(a1, b1);
             swap<Edge>(a2, b2);
@@ -164,12 +166,14 @@ void Graph::swing ( Edge a1, Edge b1 ) {
         a1.setType(Edge::LOOP);
         getSwitch(a1.getG(), a1.getNode()).setEdge(a1.getEdge(), a1);
     } else if ( type == S_Type::E0L2H0 ) {
+        DEB() { cout << "[Log] simple_swing::E0L2H0";}
         a1.setType(Edge::SWITCH);
         b1.setType(Edge::SWITCH);
 
         getSwitch(a1.getG(), a1.getNode()).setEdge(a1.getEdge(), b1);
         getSwitch(b1.getG(), b1.getNode()).setEdge(b1.getEdge(), a1);
     } else if ( type == S_Type::E0L1H1 ) {
+        DEB() { cout << "[Log] simple_swing::E0L1H1";}
         //b2がホストになるようswap
         if ( a2.getType() == Edge::HOST ) swap<Edge>(a1, a2);
         if ( b2.getType() == Edge::HOST ) swap<Edge>(b1, b2);
@@ -181,7 +185,50 @@ void Graph::swing ( Edge a1, Edge b1 ) {
     }
 }
 
+//対称なグラフに対するswing処理
+//対称を破壊するswing辺をはじく必要がる(未実装)
+void Graph::swing(const Edge& a, const Edge& b) {
+    Node_no a_node = a.getNode(), b_node = b.getNode();
+    Edge_no a_edge = a.getEdge(), b_edge= b.getEdge();
 
+    for ( int i = 0; i < g; ++i ) {
+        G_no a_g((a.getG().getNo()+i)%g), b_g((b.getG().getNo()+i)%g);
+        Edge swaped_a = getEdge(Edge::edgeType::SWITCH, a_g, a_node, a_edge);
+        Edge swaped_b = getEdge(Edge::edgeType::SWITCH, b_g, b_node, b_edge);
+        simple_swing(swaped_a, swaped_b);
+    }
+}
+
+vector<vector<long long>> Graph::calcBFS( const long long empv) {
+    vector<vector<long long>> d(g*s, vector<long long>(g*s, empv));
+    int us = s/g;
+
+    for ( int i = 0; i < s; ++i ) d[i][i] = 0;
+
+    for ( int i = 0; i < s; ++i ) {
+        int gno = i/us, node_no = i%us;
+        queue<int> que;
+
+        que.push(i);
+        while(!que.empty()) {
+            int topno = que.front(); que.pop();
+            int gno = topno/us, node_no = topno%us;
+
+            const vector<Edge>& edges = getSwitch(G_no(gno), Node_no(node_no)).getEdges();
+            for ( const Edge& e : edges ) {
+                if ( e.getType() != Edge::edgeType::SWITCH ) continue;
+                int to_g = e.getG().getNo(), to_node = e.getNode().getNo();
+                int to_sno = to_g*us+to_node;
+                if ( d[i][to_sno] == empv ) {
+                    d[i][to_sno] = d[i][topno]+1;
+                    que.push(to_sno);
+                }
+            }
+        }
+    }
+
+    return d;
+}
 void Graph::print(string name = "Graph", string stuff="" ) {
     string tmp = stuff+"   ";
     cout << stuff << '[' + name + ']' << endl;

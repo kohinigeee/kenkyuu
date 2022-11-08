@@ -9,28 +9,35 @@
 #include"./header/GraphPart.hpp"
 #include"./header/Graph.hpp"
 
-bool debug = false;
+#define INF (1LL<<60)
+
+bool debug = true;
 
 using namespace std;
 
 int main()
 {
-    debug_off();
+    debug_on();
 
-    Graph graph = Graph::make(9, 12, 4, 3);
-    graph.print("Before-Swing");
-    Graph::toDot("before_swing.dot", graph);
+    DEB() { cout << "test" << endl;}
 
     try { 
-        Edge a1 = graph.getEdge(Edge::SWITCH, G_no(0), Node_no(0), Edge_no(3));
+        Graph graph = Graph::make(8, 12, 4, 1);
+        vector<vector<long long>> d = graph.calcBFS(-1);
 
-        Edge b1 = graph.getEdge(Edge::SWITCH, G_no(1), Node_no(1), Edge_no(2));
-        graph.swing(a1, b1);
+        for ( auto vec : d ) {
+            for ( auto v : vec ) cout << v << " "; cout << endl;
+        }
+        // Edge e1 = graph.getEdge(Edge::edgeType::SWITCH, G_no(0), Node_no(0), Edge_no(0) );
+        // Edge e2 = graph.getEdge(Edge::edgeType::SWITCH, G_no(0), Node_no(2), Edge_no(2) );
+        Graph::toDot("before_swing.dot", graph);
+        graph.print("Before-Swing");
+        // graph.simple_swing(e1, e2);
+        // Graph::toDot("after_swing.dot", graph);
 
     } catch ( IregalManuplateException e ) {
         cout << e.getMesage() << endl;
-        Graph::toDot("after_swing.dot", graph);
+    } catch ( IregalValueException e ) {
+        cout << e.getMesage() << endl;
     }
-    Graph::toDot("after_swing.dot", graph);
-    graph.print("After-Swing");
 }

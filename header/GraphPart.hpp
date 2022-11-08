@@ -21,7 +21,7 @@ class GraphPart {
         if ( s < 0 ) throw IregalValueException("[GraphPart::constructer] Ireagal value of s");
         if ( r < 0 ) throw IregalValueException("[GraphPart::constructer] Ireagal value of r");
         if ( h < 0 ) throw IregalValueException("[GraphPart::constructer] Ireagal value of h");
-        if ( s*r < h ) throw IregalValueException("[GraphPart::constructer] Ireagal values for Graph");
+        if ( s*r < h+s ) throw IregalValueException("[GraphPart::constructer] Ireagal values for Graph");
 
         switchs = vector<Switch>();
         hosts = vector<Host>();
@@ -103,27 +103,24 @@ class GraphPart {
 
 //種数1のグラフの生成
 void GraphPart::init() {
+    DEB() { cout << "[Log]GraphPart::init()" << endl;}
     if ( s*r <= h ) { cout << "ホスト数が総ポート数以上です" << endl; return; }
-    vector<int> cnts(s, 0);
+    vector<int> cnts(s, 0); //スイッチiの使ってるポート数
 
-    DEB() { cout << "GraphPart::init()" << endl;}
 
     //ホストを均等に割り振り
     for ( int i = 0; i < h; ++i ) {
         int sno = i%s;
-        DEB() { cout << "i =" << i << endl;}
         switchs[sno].setEdge(Edge_no(cnts[sno]), Edge::makeToHost(g, Node_no(i)));
         hosts[i].setEdge( Edge::makeToSwitich(g, Node_no(sno), Edge_no(cnts[sno])));
         ++cnts[sno];
      }
 
 
-    DEB() { cout << "GraphPart::init() " << endl;}
     int sum_cnt = 0;
     for ( auto v: cnts ) sum_cnt += v;
 
     int sno = 0;
-
     //スイッチ数が1の場合は例外
     while ( sum_cnt < s*r ) {
         int rno = (sno+1)%s;
@@ -133,15 +130,16 @@ void GraphPart::init() {
             switchs[sno].setEdge(cnts[sno], Edge::makeToSwitich(g, Node_no(rno), Edge_no(cnts[rno])));
             switchs[rno].setEdge(cnts[rno], Edge::makeToSwitich(g, Node_no(sno), Edge_no(cnts[sno])));
             ++cnts[rno]; ++cnts[sno];
-                sum_cnt += 2;
+            sum_cnt += 2;
            }
 
         int lno = (sno-1);
-        if ( lno < 0 ) sno += s;
+        if ( lno < 0 ) lno += s;
 
         if ( cnts[lno] < r ) {
             switchs[sno].setEdge(cnts[sno], Edge::makeToSwitich(g, Node_no(lno), Edge_no(cnts[lno])));
             switchs[lno].setEdge(cnts[lno], Edge::makeToSwitich(g, Node_no(sno), Edge_no(cnts[sno])));
+            ++cnts[sno]; ++cnts[lno];
             sum_cnt += 2;
         }
 

@@ -13,7 +13,7 @@ class G_no {
 
     public:
     G_no( const int no ) : g_no(no) {
-        if ( no < 0 ) throw IregalValueException("[G_no::constructer] g_noは非負整数");
+        if ( no < 0 ) throw IregalValueException("[G_no::constructer] g_no is not minus value");
     }
     G_no() { G_no(0); }
 
@@ -31,6 +31,8 @@ class G_no {
     bool operator!= ( const G_no& g ) {
         return !(*this == g);
     }
+
+    // int operatorint( const G_no& g ) { return g_no; }
 };
 
 class Node_no {
@@ -38,7 +40,7 @@ class Node_no {
 
     public:
     Node_no( const int no ) : node_no(no) {
-        if ( no < 0 ) throw IregalValueException("[Node_no::constructer] node_noは非負整数");
+        if ( no < 0 ) throw IregalValueException("[Node_no::constructer] node_no is not minus value");
     }
     Node_no() { Node_no(0); }
 
@@ -56,6 +58,8 @@ class Node_no {
     bool operator!= (const Node_no& node ) {
         return !(*this != node);
     }
+    // int operatorint( const Node_no& g ) { return node_no; }
+
 };
 
 class Edge_no {
@@ -63,7 +67,7 @@ class Edge_no {
 
     public:
     Edge_no ( const int no ) : edge_no(no) {
-        if ( no < 0 ) throw IregalValueException("[Edge_no::constructer] edge_noは非負整数");
+        if ( no < 0 ) throw IregalValueException("[Edge_no::constructer] edge_no is not minus value");
     }
     Edge_no () { Edge_no(0); }
     int inline getNo() const { return edge_no; }
@@ -126,9 +130,13 @@ class Edge {
         return Edge(NONE, noneDefaultG, noneDefaultNode, noneDefaultEdge);
     }
 
+    //接続先のノードタイプを取得
     edgeType inline getType() const;
+    //接続先の種番号を取得
     G_no inline getG() const;
+    //接続先のノード番号を取得
     Node_no inline getNode() const;
+    //接続先のエッジ番号を取得
     Edge_no inline getEdge() const;
 
     void inline setG(const G_no& g ) { this->to_g = g; }

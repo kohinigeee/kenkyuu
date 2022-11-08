@@ -66,7 +66,7 @@ class Switch {
 
     inline Edge& getEdge( Edge_no no ) { return edges[no.getNo()]; }
     inline const Edge& getEdge( Edge_no no ) const{ return edges[no.getNo()]; }
-    inline const vector<Edge> getEdges() const { return edges; }
+    inline const vector<Edge>& getEdges() const { return edges; }
 
     Switch& operator=( const Switch& sw ) {
         r = sw.get_r(); h = sw.get_hsize(); loop = sw.get_loop();
