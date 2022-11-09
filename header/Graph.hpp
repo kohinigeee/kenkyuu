@@ -8,6 +8,13 @@
 #include<string>
 #include<cmath>
 #include<queue>
+#include<random>
+#include<map>
+#include<algorithm>
+
+#define GRAPH__SEDD 10
+
+using graph_info_t = map<string, long long>;
 
 class Graph {
     enum S_Type {
@@ -21,6 +28,7 @@ class Graph {
     };
 
     const int s, h, r, g; // 合計のs, h
+    int us;
     vector<GraphPart> parts;
 
     Graph( int s, int h,int r, int g ) : s(s), h(h), r(r), g(g) {
@@ -28,6 +36,7 @@ class Graph {
         if ( (s-1)*2+h > s*r ) throw IregalValueException("[Graph::constructer] Ireagal value for Graph ( Graph dones't exists )");
         if ( s%g != 0 || h%g != 0 ) throw IregalValueException("[Graph::constructer] Ireagal value of g");
         parts = vector<GraphPart>();
+        us = s/g; 
     }
 
     void add( GraphPart& part ) { parts.push_back(part); }
@@ -70,11 +79,26 @@ class Graph {
 
     int deleteHost(const G_no&, const Node_no&);
     void make();
+
+    //単一辺のswing関数
     void simple_swing ( const Edge a1, const Edge b1 );
+
+    //対象グラフに対するswing関数 
     void swing(const Edge& a1, const Edge& b1);
-    vector<vector< long long>> calcBFS( const long long INF );
+
+    //グラフの距離行列を求める
+    vector<vector<long long>> calcBFS( const long long INF );
+
+    //グラフのSSPL(Sum of Shortest Path Length )を求める
+    // long long sumD(long long& diam);
+    graph_info_t sumD();
+
     void print(string, string);
+
+    //グラフ作成関数
     static Graph make(int s, int h, int r, int g);
+
+    //Dot言語への変換
     static void toDot(string fname, const Graph& graph, double _rd);
 };
 
@@ -102,6 +126,54 @@ Graph Graph::make(int s, int h, int r, int g) {
         graph.add(addedgp);
     }
     DEB() { cout << "make finished" << endl;}
+
+    vector<vector<Edge>> loops;
+    for ( int i = 0; i < s; ++i ) {
+        vector<Edge> vec;
+        G_no g_no(i/graph.us); Node_no node_no(i%graph.us);
+        for ( int j = 0; j < graph.r; j++ ) {
+            Edge_no edge_no(j);
+            const Edge& e = graph.getSwitch(g_no, node_no).getEdge(j);
+            if ( e.getType() == Edge::edgeType::LOOP ) vec.push_back(e);
+        }
+        if ( vec.size() > 0 ) loops.push_back(vec);
+    }
+
+    DEB() { cout << "serched loops" << endl;}
+    mt19937 mt;
+    mt.seed(GRAPH__SEDD);
+    vector<int> loopsId(loops.size());
+    for ( int i = 0; i < loopsId.size(); ++i ) loopsId[i] = i;
+
+    while(loopsId.size() >= 2 ) {
+        cout << "loopsID size = " << loopsId.size() << endl;
+
+        uniform_int_distribution<int> dist(0, loopsId.size()-1);
+        uniform_int_distribution<int> dist2(0, loopsId.size()-2);
+        int x1 = dist(mt);
+        cout << "x1 = " << x1 << endl;
+        swap(loopsId[x1], loopsId[loopsId.size()-1]);
+        int x2 = dist2(mt);
+        cout << "x2 = " << x2 << endl;
+        swap(loopsId[x2], loopsId[loopsId.size()-2]);
+
+
+        int idno1 = loopsId.size()-1, idno2 = loopsId.size()-2;
+        int lno1 = loopsId.back(), lno2 = loopsId[idno2]; 
+
+        loops[lno1].back().print("Loop-1");
+        loops[lno2].back().print("Loop-2");
+        cout << endl;
+        graph.simple_swing(loops[lno1].back(), loops[lno2].back()); 
+
+        loops[lno1].pop_back(); loops[lno2].pop_back();
+        if ( loops[lno1].size() == 0 ) loopsId.pop_back();
+        if ( loops[lno2].size() == 0 ) {
+            swap(loopsId[idno2], loopsId.back()); 
+            loopsId.pop_back();
+        }
+    }
+    DEB() { cout << "finisched making" << endl;}
     return graph;
 }
 
@@ -130,14 +202,14 @@ void Graph::simple_swing ( Edge a1, Edge b1 ) {
 
     if ( type == S_Type::E0L0H2 ) return;
     if ( type == S_Type::E2L0H0 ) {
-        cout << "[Log] simple_edge::E2L0H0" << endl;
+        DEB() { cout << "[Log] simple_edge::E2L0H0" << endl; }
      getSwitch( a2.getG(), a2.getNode()).setEdge(a2.getEdge(), b2);
      getSwitch( b2.getG(), b2.getNode()).setEdge(b2.getEdge(), a2);
 
      getSwitch( a1.getG(), a1.getNode()).setEdge(a1.getEdge(), b1);
      getSwitch( b1.getG(), b1.getNode()).setEdge(b1.getEdge(), a1);
     } else if ( type == S_Type::E1L0H1 ) {
-        DEB() { cout << "[Log] simple_edge::E1L0H1"; }
+        DEB() { cout << "[Log] simple_edge::E1L0H1" << endl;; }
 
      if ( a2.getType() == Edge::HOST ) swap<Edge>(a1, a2);
      if ( b2.getType() == Edge::HOST ) swap<Edge>(b1, b2);
@@ -166,14 +238,14 @@ void Graph::simple_swing ( Edge a1, Edge b1 ) {
         a1.setType(Edge::LOOP);
         getSwitch(a1.getG(), a1.getNode()).setEdge(a1.getEdge(), a1);
     } else if ( type == S_Type::E0L2H0 ) {
-        DEB() { cout << "[Log] simple_swing::E0L2H0";}
+        DEB() { cout << "[Log] simple_swing::E0L2H0" << endl;}
         a1.setType(Edge::SWITCH);
         b1.setType(Edge::SWITCH);
 
         getSwitch(a1.getG(), a1.getNode()).setEdge(a1.getEdge(), b1);
         getSwitch(b1.getG(), b1.getNode()).setEdge(b1.getEdge(), a1);
     } else if ( type == S_Type::E0L1H1 ) {
-        DEB() { cout << "[Log] simple_swing::E0L1H1";}
+        DEB() { cout << "[Log] simple_swing::E0L1H1" << endl;}
         //b2がホストになるようswap
         if ( a2.getType() == Edge::HOST ) swap<Edge>(a1, a2);
         if ( b2.getType() == Edge::HOST ) swap<Edge>(b1, b2);
@@ -183,7 +255,9 @@ void Graph::simple_swing ( Edge a1, Edge b1 ) {
         a1.setType(Edge::SWITCH);
         getPart(a1.getG()).addHost(a1.getNode(), a1.getEdge());
     }
+    DEB() { cout << "[Log] finished simple_swing()" << endl;}
 }
+
 
 //対称なグラフに対するswing処理
 //対称を破壊するswing辺をはじく必要がる(未実装)
@@ -199,9 +273,8 @@ void Graph::swing(const Edge& a, const Edge& b) {
     }
 }
 
-vector<vector<long long>> Graph::calcBFS( const long long empv) {
+vector<vector<long long>> Graph::calcBFS( const long long empv = -1) {
     vector<vector<long long>> d(g*s, vector<long long>(g*s, empv));
-    int us = s/g;
 
     for ( int i = 0; i < s; ++i ) d[i][i] = 0;
 
@@ -229,6 +302,40 @@ vector<vector<long long>> Graph::calcBFS( const long long empv) {
 
     return d;
 }
+
+graph_info_t Graph::sumD() {
+    vector<vector<long long>> d = calcBFS();
+    long long ans = 0;
+    long long diam = 0;
+    pair<long long, long long> e;
+    
+    for ( int i = 0; i < s; ++i ) {
+        G_no g_no(i/us); Node_no node_no(i%us);
+        long long ih = getSwitch(g_no, node_no).get_hsize();
+
+        if ( ih >= 2 ) { 
+            ans += ih*(ih+1);
+            if ( diam < 2 ) {
+                diam = 2;
+                e = make_pair(i, i);
+            }
+        }
+        for ( int j = i+1; j < s; ++j ) {
+            G_no to_gno(j/us); Node_no to_node(j%us);
+            long long toh = getSwitch(to_gno, to_node).get_hsize();
+            if ( toh == 0 ) continue;
+            ans += ih*toh*(d[i][j]+2);
+            if ( diam < d[i][j]+2 ) {
+                diam = d[i][j]+2;
+                e=make_pair(i, j);
+            }
+        }
+    }
+
+    map<string, long long> v = { {"sumd",ans}, {"diam", diam}, {"v1", e.first}, {"v2", e.second}};
+    return v;
+}
+
 void Graph::print(string name = "Graph", string stuff="" ) {
     string tmp = stuff+"   ";
     cout << stuff << '[' + name + ']' << endl;
