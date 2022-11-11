@@ -1,0 +1,57 @@
+graph test2 {
+	graph [
+		charset="utf-8",
+		layout=neato
+	];
+	node [
+		shape=box;
+		style="solid, filled"
+		colorscheme = paired12	];
+
+	subgraph cluster_sub0 {
+	node[ color=1 ]
+	0[
+		pos="5.000, 3.000!", 
+		label="0 (2)"
+	]
+	1[
+		pos="7.121, 2.121!", 
+		label="1 (2)"
+	]
+	2[
+		pos="8.000, 0.000!", 
+		label="2 (2)"
+	]
+	3[
+		pos="7.121, -2.121!", 
+		label="3 (2)"
+	]
+	4[
+		pos="5.000, -3.000!", 
+		label="4 (1)"
+	]
+	5[
+		pos="2.879, -2.121!", 
+		label="5 (1)"
+	]
+	6[
+		pos="2.000, 0.000!", 
+		label="6 (1)"
+	]
+	7[
+		pos="2.879, 2.121!", 
+		label="7 (1)"
+	]
+	}
+
+	0--1
+	0--7
+	1--2
+	2--3
+	3--4
+	4--5
+	4--7
+	5--6
+	5--6
+	6--7
+}

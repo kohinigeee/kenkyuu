@@ -85,6 +85,8 @@ class GraphPart {
 
     GraphPart clone() { return (*this).clone(G_no(g.getNo()+1)); }
 
+    bool isSame(const GraphPart& gp); 
+
     GraphPart& operator= (const GraphPart& gp ) {
         s = gp.get_ssize(); h = gp.get_hsize(); g = gp.get_gno();
         r = gp.get_r();
@@ -92,6 +94,23 @@ class GraphPart {
         hosts = gp.get_hosts();
         return *this;
     }
+
+    bool operator== (const GraphPart& gp ) {
+        DEB() { cout << "[Log] GraphPart operat==" << endl;}
+        if ( this->s != gp.s ) return false;
+        if ( this->h != gp.h ) return false;
+        if ( this->r != gp.r ) return false;
+        if ( this->g != gp.g ) return false;
+        for ( int i = 0; i < s; ++i ) {
+            if ( switchs[i] != gp.switchs[i] ) return false;
+        }
+        for ( int i = 0; i < h; ++i ) {
+            if ( hosts[i] != gp.hosts[i] ) return false;
+        }
+        return true;
+    }
+
+    bool operator!=  (const GraphPart& gp ) { return !((*this) == gp);}
 
     //種数1のグラフの生成
     void init();
@@ -176,7 +195,7 @@ Host&  GraphPart::addHost(const Node_no& s_no, const Edge_no& edge_no) { //ホ�
     const int node_no = s_no.getNo();
     if( node_no < 0 || node_no >= s ) throw IregalValueException("[GraphPart::addHost()] Iregal s_no");
     if( edge_no.getNo() >= switchs[node_no].get_r() ) throw IregalValueException("[GraphPart::addHost()] Iregal edge_no");
-    Host host = Edge::makeToHost(G_no(g), Node_no(hosts.size()) );
+    Host host (Edge::makeToSwitich(G_no(g), s_no, edge_no ));
     switchs[node_no].setEdge(edge_no, Edge::makeToHost(g, Node_no(hosts.size())));
     hosts.push_back(host);
     h = hosts.size();
@@ -196,6 +215,28 @@ Host&  GraphPart::addHost(const Node_no& s_no, const Edge_no& edge_no) { //ホ�
     hosts.pop_back();
     h = hosts.size();
 }
+
+bool GraphPart::isSame(const GraphPart& gp) {
+    if ( s != gp.s ) return false;
+    if ( g != gp.g ) return false;
+    if ( h != gp.h ) return false;
+    if ( r != gp.r ) return false;
+
+    for ( int i = 0; i < s; ++i ) if ( !(switchs[i].isSame(gp.switchs[i]))) return false;
+    multiset<Edge> st, st2;
+    for ( int i = 0; i < h; ++i ) {
+        Edge e = hosts[i].getEdge();
+        e.setEdge(Edge_no(0));
+        st.insert(e);
+    }
+    for ( int i = 0; i < h; ++i ) {
+        Edge e = gp.hosts[i].getEdge();
+        e.setEdge(Edge_no(0));
+        st2.insert(e);
+    }
+    return st == st2;
+}
+
 
 void GraphPart::print(string name="GraphPart", string stuff="" ) {
     string tmp = stuff+"   ";

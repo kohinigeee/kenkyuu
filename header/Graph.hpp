@@ -27,16 +27,24 @@ class Graph {
         UNDEF,
     };
 
+    
     const int s, h, r, g; // 合計のs, h
     int us;
     vector<GraphPart> parts;
+
+    enum S_Type prevtype; //前回のsimple_swingのタイプ
+    bool canback; //巻き戻しをできるかどうか
+    pair<Edge, Edge> rireki; //前回のsimple_swingの戻り値
+
 
     Graph( int s, int h,int r, int g ) : s(s), h(h), r(r), g(g) {
         if ( s < 0 || h < 0 || r < 0 || g < 1 ) throw IregalValueException("[Graph::constructer] Ireagal value for Graph");
         if ( (s-1)*2+h > s*r ) throw IregalValueException("[Graph::constructer] Ireagal value for Graph ( Graph dones't exists )");
         if ( s%g != 0 || h%g != 0 ) throw IregalValueException("[Graph::constructer] Ireagal value of g");
         parts = vector<GraphPart>();
-        us = s/g; 
+        us = s/g;
+        prevtype = S_Type::UNDEF;
+        canback = false;
     }
 
     void add( GraphPart& part ) { parts.push_back(part); }
@@ -80,20 +88,37 @@ class Graph {
     int deleteHost(const G_no&, const Node_no&);
     void make();
 
-    //単一辺のswing関数
-    void simple_swing ( const Edge a1, const Edge b1 );
+    //単一辺のswing関数(外部からは呼ばない)
+    private:
+    pair<Edge, Edge> simple_swing ( const Edge a1, const Edge b1, S_Type& type );
+
+    public:
+    //履歴に残すsimple_swing関数
+    void simple_swing( const Edge a1, const Edge b1) {
+      this->rireki = simple_swing(a1, b1, prevtype); 
+      this->canback = true;
+    }
+
+    //一つ前の(swing実行前)のグラフに戻す
+    bool back();
 
     //対象グラフに対するswing関数 
     void swing(const Edge& a1, const Edge& b1);
+
 
     //グラフの距離行列を求める
     vector<vector<long long>> calcBFS( const long long INF );
 
     //グラフのSSPL(Sum of Shortest Path Length )を求める
-    // long long sumD(long long& diam);
     graph_info_t sumD();
 
     void print(string, string);
+
+    bool operator==(const Graph& g);
+    bool operator!=(const Graph& g);
+
+    //同じ形かの判定
+    bool isSame(const Graph& g);
 
     //グラフ作成関数
     static Graph make(int s, int h, int r, int g);
@@ -178,11 +203,11 @@ Graph Graph::make(int s, int h, int r, int g) {
 }
 
 //単一swing処理
-void Graph::simple_swing ( Edge a1, Edge b1 ) {
+pair<Edge, Edge> Graph::simple_swing ( Edge a1, Edge b1, S_Type& type ) {
     DEB() { cout << "[Log]Graph::simple_swing() " << endl; }
      Edge a2 = getEdge(a1);
      Edge b2 = getEdge(b1);
-     enum S_Type type = S_Type::UNDEF;
+     type = S_Type::UNDEF;
 
     DEB() { cout << "test" << endl;}
     int es = 0, el = 0, eh = 0;
@@ -200,17 +225,24 @@ void Graph::simple_swing ( Edge a1, Edge b1 ) {
     else if ( es == 1 && eh == 1 ) type = S_Type::E1L0H1;
     else if ( el == 1 && eh == 1 ) type = S_Type::E0L1H1;
 
-    if ( type == S_Type::E0L0H2 ) return;
+    if ( type == S_Type::E0L0H2 ) return make_pair(a1, a2);//ダミー
     if ( type == S_Type::E2L0H0 ) {
         DEB() { cout << "[Log] simple_edge::E2L0H0" << endl; }
+     //A1にB1への辺を設定
      getSwitch( a2.getG(), a2.getNode()).setEdge(a2.getEdge(), b2);
+     //B1にA1への辺を設定
      getSwitch( b2.getG(), b2.getNode()).setEdge(b2.getEdge(), a2);
 
+     //A2にB2への辺を設定
      getSwitch( a1.getG(), a1.getNode()).setEdge(a1.getEdge(), b1);
+     //B2にA2への辺を設定
      getSwitch( b1.getG(), b1.getNode()).setEdge(b1.getEdge(), a1);
+     
+     return make_pair(b1, b2);
     } else if ( type == S_Type::E1L0H1 ) {
-        DEB() { cout << "[Log] simple_edge::E1L0H1" << endl;; }
+        DEB() { cout << "[Log] simple_edge::E1L0H1" << endl; }
 
+    //b2がホストになるように
      if ( a2.getType() == Edge::HOST ) swap<Edge>(a1, a2);
      if ( b2.getType() == Edge::HOST ) swap<Edge>(b1, b2);
      if ( a1.getType() == Edge::HOST ) {
@@ -219,11 +251,16 @@ void Graph::simple_swing ( Edge a1, Edge b1 ) {
         }
 
     deleteHost(b1.getG(), b1.getNode());
+    //B1にA1への辺を設定
     getSwitch(b2.getG(), b2.getNode()).setEdge(b2.getEdge(), a2);
+    //A1にB1への辺を設定
     getSwitch(a2.getG(), a2.getNode()).setEdge(a2.getEdge(), b2);
 
     getPart(a1.getG()).addHost(a1.getNode(), a1.getEdge());
-    // parts[a1.to_g].addHost(getSwitch(a1.to_g, a1.to_no), a1.to_edge_no, Host(a1));
+
+    Edge p2 = getSwitch(a1.getG(), a1.getNode()).getEdge(a1.getEdge());
+    return make_pair(b2, p2);
+
     } if ( type == S_Type::E1L1H0 ) {
         DEB() { cout << "[Log] simple_swing::E1L1H0" << endl; }
         if ( a1.getType() == Edge::LOOP ) {
@@ -237,6 +274,8 @@ void Graph::simple_swing ( Edge a1, Edge b1 ) {
 
         a1.setType(Edge::LOOP);
         getSwitch(a1.getG(), a1.getNode()).setEdge(a1.getEdge(), a1);
+        return make_pair(b1, a1);
+
     } else if ( type == S_Type::E0L2H0 ) {
         DEB() { cout << "[Log] simple_swing::E0L2H0" << endl;}
         a1.setType(Edge::SWITCH);
@@ -244,6 +283,8 @@ void Graph::simple_swing ( Edge a1, Edge b1 ) {
 
         getSwitch(a1.getG(), a1.getNode()).setEdge(a1.getEdge(), b1);
         getSwitch(b1.getG(), b1.getNode()).setEdge(b1.getEdge(), a1);
+        return make_pair(a2, b2); //特殊パターン
+
     } else if ( type == S_Type::E0L1H1 ) {
         DEB() { cout << "[Log] simple_swing::E0L1H1" << endl;}
         //b2がホストになるようswap
@@ -254,10 +295,39 @@ void Graph::simple_swing ( Edge a1, Edge b1 ) {
         deleteHost(b1.getG(), b1.getNode());
         a1.setType(Edge::SWITCH);
         getPart(a1.getG()).addHost(a1.getNode(), a1.getEdge());
+
+        Edge p1 = getSwitch(a2.getG(), a2.getNode()).getEdge(a2.getEdge());
+        Edge p2 = getSwitch(b2.getG(), b2.getNode()).getEdge(b2.getEdge());
+
+        return make_pair(p1, p2);
     }
-    DEB() { cout << "[Log] finished simple_swing()" << endl;}
+
+    return make_pair(Edge::makeNone(), Edge::makeNone());
+    //ダミー(基本ここまでいかない)
 }
 
+//履歴によって一つ前の状態に戻す処理
+bool Graph::back() {
+    DEB () { cout << "[Log] start back()" << endl;}
+    if ( !canback ) return false;
+
+    canback = false;
+    if ( this->prevtype == S_Type::UNDEF ) return false;
+    if ( this->prevtype == S_Type::E0L0H2 ) return true;
+    Edge a = this->rireki.first;
+    Edge b = this->rireki.second;
+    if ( this->prevtype == S_Type::E0L2H0 ) {
+        getSwitch(a.getG(), a.getNode()).setEdge(a.getEdge(), a);
+        getSwitch(b.getG(), b.getNode()).setEdge(b.getEdge(), b);
+        return true;
+    } 
+    
+    S_Type tmp;
+    a.print("back-a");
+    b.print("back-b");
+    simple_swing(a,b,tmp);
+    return true;
+}
 
 //対称なグラフに対するswing処理
 //対称を破壊するswing辺をはじく必要がる(未実装)
@@ -336,6 +406,38 @@ graph_info_t Graph::sumD() {
     return v;
 }
 
+
+bool Graph::operator==(const Graph& graph ) {
+    DEB() { cout << "[Log] Graph operator==" << endl;}
+    if ( this->s != graph.s ) return false;
+    if ( this->h != graph.h ) return false;
+    if ( this->r != graph.r ) return false;
+    if ( this->g != graph.g ) return false;
+    if ( this->us != graph.us ) return false;
+
+    for ( int i = 0; i < this->g; ++i ) {
+        if ( this->parts[i] != graph.parts[i] ) return false;
+    }
+    return true;
+}
+
+bool Graph::operator!=(const Graph& g ) {
+    return !((*this)==g);
+}
+
+bool Graph::isSame(const Graph& graph) {
+    if ( this->s != graph.s ) return false;
+    if ( this->h != graph.h ) return false;
+    if ( this->r != graph.r ) return false;
+    if ( this->g != graph.g ) return false;
+    if ( this->us != graph.us ) return false;
+
+    for ( int i = 0; i < this->g; ++i ) {
+        if ( !(parts[i].isSame(graph.parts[i])) ) return false;
+    }
+    return true;
+}
+
 void Graph::print(string name = "Graph", string stuff="" ) {
     string tmp = stuff+"   ";
     cout << stuff << '[' + name + ']' << endl;
@@ -345,9 +447,14 @@ void Graph::print(string name = "Graph", string stuff="" ) {
         parts[i].print("GraphPart "+to_string(i), tmp);
         cout << endl;
     }
+    cout << flush;
 }
 
+
+//Dot言語に変換する関数
+//[注意] print()関数の直後に実行すると出力がバグる
 void Graph::toDot( string fname, const Graph& graph, double _rd = 3 ) {
+    cout << flush;
     ofstream ofs(fname);
     if ( !ofs ) {
         cout << fname << " が開けませんでした" << endl;

@@ -32,7 +32,9 @@ class G_no {
         return !(*this == g);
     }
 
-    // int operatorint( const G_no& g ) { return g_no; }
+    bool operator< ( const G_no& g ) {
+        return g_no < g.g_no;
+    }
 };
 
 class Node_no {
@@ -56,10 +58,12 @@ class Node_no {
     }
 
     bool operator!= (const Node_no& node ) {
-        return !(*this != node);
+        return !(*this == node);
     }
-    // int operatorint( const Node_no& g ) { return node_no; }
 
+    bool operator< ( const Node_no& node ) {
+        return node_no < node.node_no;
+    }
 };
 
 class Edge_no {
@@ -83,6 +87,10 @@ class Edge_no {
 
     bool operator!= (const Edge_no& edge ) {
         return !(*this == edge);
+    }
+
+    bool operator< (const Edge_no& edge ) {
+        return edge_no < edge.getNo();
     }
 };
 
@@ -141,6 +149,7 @@ class Edge {
 
     void inline setG(const G_no& g ) { this->to_g = g; }
     void inline setType( Edge::edgeType type ) { this->to_type = type; }
+    void inline setEdge(const Edge_no& e_no) { this->to_edge = e_no;}
 
     // Edge inline setType( edgeType type ) {
     //     switch ( type ) {
@@ -154,6 +163,27 @@ class Edge {
         this->to_node = e.to_node;
         this->to_edge = e.to_edge;
         return *this;
+    }
+
+    bool operator==(const Edge& e ) {
+        DEB() { cout << "[Edge] operator==" << endl; }
+        if ( this->to_type != e.to_type ) return false;
+        if ( this->to_g != e.to_g ) return false;
+        if ( this->to_node != e.to_node ) return false;
+        if ( this->to_edge != e.to_edge ) return false;
+        return true;
+    }
+
+    bool operator!=(const Edge& e ) {
+        return ( !( (*this) == e ) );
+    }
+
+    bool operator<(const Edge& e ) {
+        if ( e.to_type != to_type ) return to_type < e.to_type;
+        if ( to_g != e.to_g ) return to_g < e.to_g;
+        if ( to_node != e.to_node ) return to_node < e.to_node;
+        if ( to_edge != e.to_edge ) return to_edge < e.to_edge;
+        return true;
     }
 
     void print(string, string);

@@ -3,6 +3,7 @@
 
 #include"Edge.hpp"
 #include<vector>
+#include<set>
 
 using namespace std;
 
@@ -27,6 +28,12 @@ class Host {
         return *this;
     }
 
+    bool operator== ( const Host& h ) {
+        return this->e == h.e;
+    }
+
+    bool operator!= ( const Host& h ) { return !((*this) == h ); }
+
     void print( string, string);
 };
 
@@ -38,7 +45,7 @@ void Host::print( string name="Host", string stuff="")  {
 class Switch {
     int r; //r:スイッチの接続上限
     int h; //スイッチが接続しているホストの数
-    int loop; //自己ループ(つまり使用していないポートの数)
+    int loop; //自己ループの数(つまり使用していないポートの数)
     vector<Edge> edges; //スイッチが持つ辺を管理する配列
 
     public:
@@ -74,14 +81,51 @@ class Switch {
         return *this;
     }
 
+    bool operator==( const Switch& sw ) {
+        DEB() { cout << "[Log] Switch operator==" << endl; }
+        if ( this->r != sw.r ) return false;
+        if ( this->h != sw.h ) return false;
+        if ( this->loop != sw.loop ) return false;
+        for ( int i = 0; i < r; ++i ) {
+            if ( this->edges[i] != sw.edges[i] ) return false;
+        }
+        return true;
+    }
+
+    bool operator!=( const Switch& sw ) { return !( (*this) == sw ); }
+
+    bool isSame(const Switch& sw);
     void print( string, string);
 };
+
+//正誤条件には注意
+bool Switch::isSame(const Switch& sw) {
+    if ( this->r != sw.r ) return false;
+    if ( this->h != sw.h ) return false;
+    if ( this->loop != sw.loop ) return false;
+
+    multiset<Edge> st, st2;
+    for ( int i = 0; i < r; ++i ) {
+        Edge e = edges[i];
+        if ( e.getType() == Edge::edgeType::HOST ) continue;
+        e.setEdge(Edge_no(0));
+        st.insert(e); 
+    }
+    for ( int i = 0; i < r; ++i ) {
+        Edge e = sw.edges[i];
+        if ( e.getType() == Edge::edgeType::HOST ) continue;
+        e.setEdge(Edge_no(0));
+        st2.insert(e); 
+    }
+    
+    return st == st2;
+}
 
 void Switch::print( string name="Switch", string stuff="") {
 
     string tmp = stuff+"  ";
     cout << stuff << '[' << name << "]\n";
-    cout << tmp << "  " << "r=" << r << " hosts=" << h << endl;
+    cout << tmp << "  " << "r=" << r << " hosts=" << h << " loop=" << loop << endl;
     for ( int i = 0; i < edges.size(); ++i ) {
         cout << tmp << "  "; edges[i].print("Edge "+to_string(i));
     }
