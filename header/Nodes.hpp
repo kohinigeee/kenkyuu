@@ -1,9 +1,13 @@
 #ifndef INCLUDE_NODES_HPP
 #define INCLUDE_NODES_HPP
 
-#include"Edge.hpp"
 #include<vector>
 #include<set>
+#include<map>
+#include<algorithm>
+#include"Edge.hpp"
+#include"functions.hpp"
+
 
 using namespace std;
 
@@ -82,7 +86,7 @@ class Switch {
     }
 
     bool operator==( const Switch& sw ) {
-        DEB() { cout << "[Log] Switch operator==" << endl; }
+        DEB(DEB_LOW) { cout << "[Log] Switch operator==" << endl; }
         if ( this->r != sw.r ) return false;
         if ( this->h != sw.h ) return false;
         if ( this->loop != sw.loop ) return false;
@@ -95,6 +99,7 @@ class Switch {
     bool operator!=( const Switch& sw ) { return !( (*this) == sw ); }
 
     bool isSame(const Switch& sw);
+    bool isPropSwitch();
     void print( string, string);
 };
 
@@ -104,21 +109,37 @@ bool Switch::isSame(const Switch& sw) {
     if ( this->h != sw.h ) return false;
     if ( this->loop != sw.loop ) return false;
 
-    multiset<Edge> st, st2;
+    vector<Edge> vec1, vec2;
     for ( int i = 0; i < r; ++i ) {
         Edge e = edges[i];
         if ( e.getType() == Edge::edgeType::HOST ) continue;
         e.setEdge(Edge_no(0));
-        st.insert(e); 
+        vec1.push_back(e);
     }
     for ( int i = 0; i < r; ++i ) {
         Edge e = sw.edges[i];
         if ( e.getType() == Edge::edgeType::HOST ) continue;
         e.setEdge(Edge_no(0));
-        st2.insert(e); 
+        vec2.push_back(e);
     }
     
-    return st == st2;
+    sort(vec1.begin(), vec1.end());
+    sort(vec2.begin(), vec2.end());
+    return vec1 == vec2;
+}
+
+bool Switch::isPropSwitch() {
+    if ( edges.size() != r ) return false;
+
+    map<Edge::edgeType, int> mp;
+    mp[Edge::edgeType::HOST] = 0;
+    mp[Edge::edgeType::SWITCH] = 0;
+    mp[Edge::edgeType::LOOP] = 0;
+
+    for ( int i = 0; i < r; ++i ) mp[edges[i].getType()] += 1;
+    if ( mp[Edge::edgeType::HOST] != h ) return false;
+    if ( mp[Edge::edgeType::LOOP] != loop ) return false;
+    return true;
 }
 
 void Switch::print( string name="Switch", string stuff="") {

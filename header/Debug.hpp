@@ -4,16 +4,20 @@
 #include<string>
 #include<iostream>
 
-#define DEB() if ( is_deb ) 
+#define DEB(i) if ( deb_level >= i ) 
+#define DEB_HIGH 2 
+#define DEB_MIDLE 5
+#define DEB_LOW 10
+#define DEB_TMP 1
 
-bool is_deb = true;
+int deb_level = DEB_MIDLE;
 
-void debug_on() {
-    is_deb = true;
+void debug_on(int x) {
+    deb_level = x;
 }
 
 void debug_off() {
-    is_deb = false;
+    deb_level = 0;
 }
 
 template <typename T>

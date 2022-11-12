@@ -165,26 +165,6 @@ class Edge {
         return *this;
     }
 
-    bool operator==(const Edge& e ) {
-        DEB() { cout << "[Edge] operator==" << endl; }
-        if ( this->to_type != e.to_type ) return false;
-        if ( this->to_g != e.to_g ) return false;
-        if ( this->to_node != e.to_node ) return false;
-        if ( this->to_edge != e.to_edge ) return false;
-        return true;
-    }
-
-    bool operator!=(const Edge& e ) {
-        return ( !( (*this) == e ) );
-    }
-
-    bool operator<(const Edge& e ) {
-        if ( e.to_type != to_type ) return to_type < e.to_type;
-        if ( to_g != e.to_g ) return to_g < e.to_g;
-        if ( to_node != e.to_node ) return to_node < e.to_node;
-        if ( to_edge != e.to_edge ) return to_edge < e.to_edge;
-        return true;
-    }
 
     void print(string, string);
 };
@@ -242,4 +222,24 @@ void Edge::print(string name="Edge", string stuff = "") {
     cout << tmp << endl;
 }
 
+bool operator==(const Edge&e1, const Edge&e2) {
+   if ( e1.getType() != e2.getType() ) return false;
+   if ( e1.getG() != e2.getG() ) return false;
+   if ( e1.getNode() != e2.getNode() ) return false; 
+   if ( e1.getEdge() != e2.getEdge() ) return false;
+
+   return true;
+}
+
+bool operator!=(const Edge&e1, const Edge&e2 ) {
+    return !(e1==e2);
+}
+
+bool operator<(const Edge& e1, const Edge& e2) {
+    if ( e1.getType() != e2.getType() ) return e1.getType() < e2.getType();
+    if ( e1.getG() != e2.getG() ) return e1.getG() < e2.getG();
+    if ( e1.getNode() != e2.getNode() ) return e1.getNode() < e2.getNode();
+    if ( e1.getEdge() != e2.getEdge() ) return e1.getEdge() < e2.getEdge();
+    return true;
+}
 #endif

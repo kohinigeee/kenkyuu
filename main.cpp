@@ -19,7 +19,7 @@ int main()
 {
     debug_off();
 
-    DEB() { cout << "test" << endl;}
+    DEB(DEB_HIGH) { cout << "test" << endl;}
     string outf = "before_swing.dot";
     string outf2 = "after_swing.dot";
 

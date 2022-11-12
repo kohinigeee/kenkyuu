@@ -28,7 +28,7 @@ class Graph {
     };
 
     
-    const int s, h, r, g; // 合計のs, h
+    int s, h, r, g; // 合計のs, h
     int us;
     vector<GraphPart> parts;
 
@@ -49,7 +49,13 @@ class Graph {
 
     void add( GraphPart& part ) { parts.push_back(part); }
 
+    //指定したエッジの構成が正しいかを判定する
+    bool isPropEdge( Edge::edgeType , G_no, Node_no, Edge_no );
+
     public:
+
+    //正しいグラフ構成かを判定する
+    bool isPropGraph();
 
     inline GraphPart& getPart( const G_no& g_no ) {
         if ( g_no.getNo() >= parts.size() ) throw IregalManuplateException();
@@ -69,7 +75,7 @@ class Graph {
 
     //指定のエッジを取り出す( type:ノードタイプ g_no:種番号 node_no:相対ノード番号 edge_no:エッジ番号)
     inline Edge getEdge(Edge::edgeType type, G_no g_no, Node_no node_no, Edge_no edge_no ) {
-        DEB() { cout << "[Log] Graph::getEdge()" << endl;}
+        DEB(DEB_LOW) { cout << "[Log] Graph::getEdge()" << endl;}
         if ( g_no.getNo() < 0 || g_no.getNo() >= parts.size() ) throw IregalManuplateException("[Graph::getEdge()] Ireagal value for g_no");
         if ( type == Edge::HOST ) return parts[g_no.getNo()].get_host(node_no).getEdge();
         if ( type == Edge::SWITCH || type == Edge::LOOP ) return parts[g_no.getNo()].get_switch(node_no).getEdge(edge_no);
@@ -78,7 +84,7 @@ class Graph {
 
     //引数のエッジの終端のノードにおいて対応するエッジを抽出
     inline Edge getEdge(const Edge& edge ) {
-        DEB() { cout << "[Log] Graph::getEdge(edge)" << endl;}
+        DEB(DEB_LOW) { cout << "[Log] Graph::getEdge(edge)" << endl;}
         if ( edge.getType() == Edge::NONE ) throw IregalManuplateException("[Graph::getEdge()] Ireagal manuplate to getEdge");
         if ( edge.getType() == Edge::LOOP ) return edge;
         if ( edge.getType() == Edge::HOST ) return getEdge( edge.getType(), edge.getG(), edge.getNode(), Edge_no(0));
@@ -117,6 +123,8 @@ class Graph {
     bool operator==(const Graph& g);
     bool operator!=(const Graph& g);
 
+    Graph& operator=(const Graph& g);
+
     //同じ形かの判定
     bool isSame(const Graph& g);
 
@@ -126,6 +134,74 @@ class Graph {
     //Dot言語への変換
     static void toDot(string fname, const Graph& graph, double _rd);
 };
+
+bool Graph::isPropEdge(Edge::edgeType type, G_no g_no, Node_no node_no, Edge_no edge_no ) {
+    DEB(DEB_LOW) { cout << "[Log] Graph::isPropEdge()" << endl;}
+    Edge a = getEdge(type, g_no, node_no, edge_no);
+    Edge b = getEdge(a);
+
+    if ( b.getType() != type ) return false;
+    if ( b.getG() != g_no ) return false;
+    if ( b.getNode() != node_no) return false;
+
+    if ( b.getType() == Edge::edgeType::HOST ) return true;
+    if ( b.getEdge() != edge_no ) return false;
+    return true;
+}
+
+bool Graph::isPropGraph() {
+    DEB(DEB_HIGH) { cout << "[Log] Graph::isPropGraph()" << endl; }
+    set<Edge> st;
+
+    for ( int i = 0; i < g; ++i ) {
+        GraphPart gp = parts[i];
+        G_no g_no(i);
+
+        for ( int j = 0; j < gp.get_ssize(); ++j ) {
+            Node_no node_no(j);
+            //Switchの構成がおかしい場合はFalse
+            if ( !(gp.get_switch(node_no).isPropSwitch()) ) {
+                DEB(DEB_MIDLE) { cout << "[isPropGraph] inconsistent Switch" << endl;}
+                return false;
+
+            for ( int k = 0; k < gp.get_r(); ++k ) {
+                Edge_no edge_no(k);
+                Edge e = getEdge(Edge::edgeType::SWITCH, g_no, node_no, edge_no);
+
+                //同一のEdgeが存在する場合はFalse
+                if ( st.find(e) != st.end() ) {
+                    DEB(DEB_MIDLE) { cout << "[isPropGraph] Same Edge exists" << endl; }
+                    return false;
+                }
+                st.insert(e);
+
+                //Edgeの構成が矛盾している場合はFalse
+                if ( !(isPropEdge(Edge::edgeType::SWITCH, g_no, node_no, edge_no) ) ) {
+                    DEB(DEB_MIDLE) { cout << "[isPropGraph] inconsistent Edge" << endl;}
+                    return false;
+                }
+                }
+            }
+        }
+
+        for ( int j = 0; j < gp.get_hsize(); ++j ) {
+            Node_no node_no(j);
+            Edge e = getEdge(Edge::edgeType::HOST, g_no, node_no, Edge_no(0));
+
+            if ( st.find(e) != st.end() ) {
+                DEB(DEB_MIDLE) { cout << "[isPropGraph] Same Edge exists" << endl; }
+                return false;
+            }
+            st.insert(e);
+
+            if ( !(isPropEdge(Edge::edgeType::HOST, g_no, node_no, Edge_no(0)) ) )  {
+                DEB(DEB_MIDLE) { cout << "[isPropGraph] inconsistent Edge" << endl;}
+                return false;
+            }
+        }
+    }
+    return true;
+}
 
 
 int Graph::deleteHost(const G_no& g_no, const Node_no& node_no) { //消すホストの種番号、リスト番号
@@ -139,18 +215,18 @@ int Graph::deleteHost(const G_no& g_no, const Node_no& node_no) { //消すホス
 Graph Graph::make(int s, int h, int r, int g) {
     Graph graph(s, h, r, g);
 
-    DEB() { cout << "start make Graph" << endl;}
+    DEB(DEB_MIDLE) { cout << "start make Graph" << endl;}
     int su = s/g, hu = h/g;
     GraphPart gp(su, hu, r, G_no(0));
-    DEB() { cout << "make first GraphPart" << endl; }
+    DEB(DEB_MIDLE) { cout << "make first GraphPart" << endl; }
     gp.init();
-    DEB() { cout << "init finished" << endl; }
+    DEB(DEB_MIDLE) { cout << "init finished" << endl; }
     graph.add(gp);
     for ( int i = 1; i < g; ++i ) {
         GraphPart addedgp = graph.parts.back().clone();
         graph.add(addedgp);
     }
-    DEB() { cout << "make finished" << endl;}
+    DEB(DEB_MIDLE) { cout << "make finished" << endl;}
 
     vector<vector<Edge>> loops;
     for ( int i = 0; i < s; ++i ) {
@@ -164,31 +240,25 @@ Graph Graph::make(int s, int h, int r, int g) {
         if ( vec.size() > 0 ) loops.push_back(vec);
     }
 
-    DEB() { cout << "serched loops" << endl;}
+    DEB(DEB_MIDLE) { cout << "serched loops" << endl;}
     mt19937 mt;
     mt.seed(GRAPH__SEDD);
     vector<int> loopsId(loops.size());
     for ( int i = 0; i < loopsId.size(); ++i ) loopsId[i] = i;
 
     while(loopsId.size() >= 2 ) {
-        cout << "loopsID size = " << loopsId.size() << endl;
 
         uniform_int_distribution<int> dist(0, loopsId.size()-1);
         uniform_int_distribution<int> dist2(0, loopsId.size()-2);
         int x1 = dist(mt);
-        cout << "x1 = " << x1 << endl;
         swap(loopsId[x1], loopsId[loopsId.size()-1]);
         int x2 = dist2(mt);
-        cout << "x2 = " << x2 << endl;
         swap(loopsId[x2], loopsId[loopsId.size()-2]);
 
 
         int idno1 = loopsId.size()-1, idno2 = loopsId.size()-2;
         int lno1 = loopsId.back(), lno2 = loopsId[idno2]; 
 
-        loops[lno1].back().print("Loop-1");
-        loops[lno2].back().print("Loop-2");
-        cout << endl;
         graph.simple_swing(loops[lno1].back(), loops[lno2].back()); 
 
         loops[lno1].pop_back(); loops[lno2].pop_back();
@@ -198,18 +268,18 @@ Graph Graph::make(int s, int h, int r, int g) {
             loopsId.pop_back();
         }
     }
-    DEB() { cout << "finisched making" << endl;}
+    DEB(DEB_MIDLE) { cout << "finisched making" << endl;}
     return graph;
 }
 
 //単一swing処理
 pair<Edge, Edge> Graph::simple_swing ( Edge a1, Edge b1, S_Type& type ) {
-    DEB() { cout << "[Log]Graph::simple_swing() " << endl; }
+    DEB(DEB_HIGH) { cout << "[Log]Graph::simple_swing() " << endl; }
      Edge a2 = getEdge(a1);
      Edge b2 = getEdge(b1);
      type = S_Type::UNDEF;
 
-    DEB() { cout << "test" << endl;}
+    DEB(DEB_HIGH) { cout << "test" << endl;}
     int es = 0, el = 0, eh = 0;
     if ( a1.getType() == Edge::LOOP ) ++el;
     if ( b1.getType() == Edge::LOOP ) ++el;
@@ -227,7 +297,7 @@ pair<Edge, Edge> Graph::simple_swing ( Edge a1, Edge b1, S_Type& type ) {
 
     if ( type == S_Type::E0L0H2 ) return make_pair(a1, a2);//ダミー
     if ( type == S_Type::E2L0H0 ) {
-        DEB() { cout << "[Log] simple_edge::E2L0H0" << endl; }
+        DEB(DEB_HIGH) { cout << "[Log] simple_edge::E2L0H0" << endl; }
      //A1にB1への辺を設定
      getSwitch( a2.getG(), a2.getNode()).setEdge(a2.getEdge(), b2);
      //B1にA1への辺を設定
@@ -240,7 +310,7 @@ pair<Edge, Edge> Graph::simple_swing ( Edge a1, Edge b1, S_Type& type ) {
      
      return make_pair(b1, b2);
     } else if ( type == S_Type::E1L0H1 ) {
-        DEB() { cout << "[Log] simple_edge::E1L0H1" << endl; }
+        DEB(DEB_HIGH) { cout << "[Log] simple_edge::E1L0H1" << endl; }
 
     //b2がホストになるように
      if ( a2.getType() == Edge::HOST ) swap<Edge>(a1, a2);
@@ -262,7 +332,7 @@ pair<Edge, Edge> Graph::simple_swing ( Edge a1, Edge b1, S_Type& type ) {
     return make_pair(b2, p2);
 
     } if ( type == S_Type::E1L1H0 ) {
-        DEB() { cout << "[Log] simple_swing::E1L1H0" << endl; }
+        DEB(DEB_HIGH) { cout << "[Log] simple_swing::E1L1H0" << endl; }
         if ( a1.getType() == Edge::LOOP ) {
             swap<Edge>(a1, b1);
             swap<Edge>(a2, b2);
@@ -277,7 +347,7 @@ pair<Edge, Edge> Graph::simple_swing ( Edge a1, Edge b1, S_Type& type ) {
         return make_pair(b1, a1);
 
     } else if ( type == S_Type::E0L2H0 ) {
-        DEB() { cout << "[Log] simple_swing::E0L2H0" << endl;}
+        DEB(DEB_HIGH) { cout << "[Log] simple_swing::E0L2H0" << endl;}
         a1.setType(Edge::SWITCH);
         b1.setType(Edge::SWITCH);
 
@@ -286,7 +356,7 @@ pair<Edge, Edge> Graph::simple_swing ( Edge a1, Edge b1, S_Type& type ) {
         return make_pair(a2, b2); //特殊パターン
 
     } else if ( type == S_Type::E0L1H1 ) {
-        DEB() { cout << "[Log] simple_swing::E0L1H1" << endl;}
+        DEB(DEB_HIGH) { cout << "[Log] simple_swing::E0L1H1" << endl;}
         //b2がホストになるようswap
         if ( a2.getType() == Edge::HOST ) swap<Edge>(a1, a2);
         if ( b2.getType() == Edge::HOST ) swap<Edge>(b1, b2);
@@ -308,7 +378,7 @@ pair<Edge, Edge> Graph::simple_swing ( Edge a1, Edge b1, S_Type& type ) {
 
 //履歴によって一つ前の状態に戻す処理
 bool Graph::back() {
-    DEB () { cout << "[Log] start back()" << endl;}
+    DEB (DEB_HIGH) { cout << "[Log] start back()" << endl;}
     if ( !canback ) return false;
 
     canback = false;
@@ -408,7 +478,7 @@ graph_info_t Graph::sumD() {
 
 
 bool Graph::operator==(const Graph& graph ) {
-    DEB() { cout << "[Log] Graph operator==" << endl;}
+    DEB(DEB_LOW) { cout << "[Log] Graph operator==" << endl;}
     if ( this->s != graph.s ) return false;
     if ( this->h != graph.h ) return false;
     if ( this->r != graph.r ) return false;
@@ -423,6 +493,16 @@ bool Graph::operator==(const Graph& graph ) {
 
 bool Graph::operator!=(const Graph& g ) {
     return !((*this)==g);
+}
+
+Graph& Graph::operator=(const Graph& g ) {
+    s = g.s; h = g.h; r = g.r; this->g = g.g;
+    parts = g.parts;
+
+    prevtype = g.prevtype;
+    canback = g.canback;
+    rireki = g.rireki;
+    return (*this);
 }
 
 bool Graph::isSame(const Graph& graph) {
@@ -542,5 +622,6 @@ void Graph::toDot( string fname, const Graph& graph, double _rd = 3 ) {
 
     ofs.close();
 }
+
 
 #endif

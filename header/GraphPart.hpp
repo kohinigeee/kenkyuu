@@ -4,6 +4,8 @@
 #include "Nodes.hpp"
 #include <iostream>
 #include <vector>
+#include<algorithm>
+
 
 //一つの種を表すクラス
 class GraphPart {
@@ -15,7 +17,7 @@ class GraphPart {
 
     public:
     GraphPart(const int s, const int h, const int r, const G_no& g) : s(s), h(h), r(r), g(g) {
-        DEB() { 
+        DEB(DEB_MIDLE) { 
             cout << "constructer GraphPart" << endl;
             cout << "s = " << s << ", h = " << h << ", r = " << r << endl; }
         if ( s < 0 ) throw IregalValueException("[GraphPart::constructer] Ireagal value of s");
@@ -29,7 +31,6 @@ class GraphPart {
             switchs.push_back(Switch(r));
         }
         for ( int i = 0; i < h; ++i ) {
-            DEB() { cout << "i = " << i << endl;}
             hosts.push_back(Host());
         }
     }
@@ -96,7 +97,7 @@ class GraphPart {
     }
 
     bool operator== (const GraphPart& gp ) {
-        DEB() { cout << "[Log] GraphPart operat==" << endl;}
+        DEB(DEB_LOW) { cout << "[Log] GraphPart operat==" << endl;}
         if ( this->s != gp.s ) return false;
         if ( this->h != gp.h ) return false;
         if ( this->r != gp.r ) return false;
@@ -122,7 +123,7 @@ class GraphPart {
 
 //種数1のグラフの生成
 void GraphPart::init() {
-    DEB() { cout << "[Log]GraphPart::init()" << endl;}
+    DEB(DEB_MIDLE) { cout << "[Log]GraphPart::init()" << endl;}
     if ( s*r <= h ) { cout << "ホスト数が総ポート数以上です" << endl; return; }
     vector<int> cnts(s, 0); //スイッチiの使ってるポート数
 
@@ -222,19 +223,25 @@ bool GraphPart::isSame(const GraphPart& gp) {
     if ( h != gp.h ) return false;
     if ( r != gp.r ) return false;
 
-    for ( int i = 0; i < s; ++i ) if ( !(switchs[i].isSame(gp.switchs[i]))) return false;
-    multiset<Edge> st, st2;
+    for ( int i = 0; i < s; ++i ) {
+        if ( !(switchs[i].isSame(gp.switchs[i]))) return false;
+    }
+
+    
+    vector<Edge> vec1, vec2;
     for ( int i = 0; i < h; ++i ) {
         Edge e = hosts[i].getEdge();
         e.setEdge(Edge_no(0));
-        st.insert(e);
+        vec1.push_back(e);
     }
     for ( int i = 0; i < h; ++i ) {
         Edge e = gp.hosts[i].getEdge();
         e.setEdge(Edge_no(0));
-        st2.insert(e);
+        vec2.push_back(e);
     }
-    return st == st2;
+    sort(vec1.begin(), vec1.end());
+    sort(vec2.begin(), vec2.end());
+    return vec1 == vec2;
 }
 
 
