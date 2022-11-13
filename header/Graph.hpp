@@ -177,7 +177,11 @@ bool Graph::isPropGraph() {
 
                 //Edgeの構成が矛盾している場合はFalse
                 if ( !(isPropEdge(Edge::edgeType::SWITCH, g_no, node_no, edge_no) ) ) {
-                    DEB(DEB_MIDLE) { cout << "[isPropGraph] inconsistent Edge" << endl;}
+                    DEB(DEB_MIDLE) { 
+                        cout << "[isPropGraph] inconsistent Edge" << endl;
+                        cout << "Switch :: g=" << g_no.getNo() << " node=" << node_no.getNo() << " edge=" << edge_no.getNo() << endl;
+                        e.print("Incosistent Edge");
+                    }
                     return false;
                 }
                 }
@@ -195,18 +199,23 @@ bool Graph::isPropGraph() {
             st.insert(e);
 
             if ( !(isPropEdge(Edge::edgeType::HOST, g_no, node_no, Edge_no(0)) ) )  {
-                DEB(DEB_MIDLE) { cout << "[isPropGraph] inconsistent Edge" << endl;}
+                DEB(DEB_MIDLE) { {
+                    cout << "[isPropGraph] inconsistent Edge" << endl;}
+                    cout << "Host :: g=" << g_no.getNo() << " node=" << node_no.getNo() <<  endl;
+                    e.print("Inconsistent Edge");
+                }
                 return false;
             }
         }
     }
+    DEB(DEB_MIDLE) { cout << "[isPropGraph] result OK" << endl; }
     return true;
 }
 
 
 int Graph::deleteHost(const G_no& g_no, const Node_no& node_no) { //消すホストの種番号、リスト番号
     if ( g_no.getNo() < 0 || g_no.getNo() >= parts.size() ) return 0;
-    if ( node_no.getNo() < 0 || node_no.getNo() >= parts[g].get_hosts().size() ) return 0;
+    if ( node_no.getNo() < 0 || node_no.getNo() >= parts[g_no.getNo()].get_hosts().size() ) return 0;
 
     parts[g_no.getNo()].deleteHost(node_no);
     return 1;

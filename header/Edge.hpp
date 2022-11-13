@@ -216,7 +216,7 @@ void Edge::print(string name="Edge", string stuff = "") {
     tmp += '[' + name + "]{";
     tmp += " [to_type]: "+type;
     tmp += "  [to_g]: "+ s_g;
-    tmp += "  [to_no]: "+ s_no;
+    tmp += "  [to_node]: "+ s_no;
     tmp += "  [to_edge_no]: "+ s_edge_no;
     tmp += " }";
     cout << tmp << endl;
