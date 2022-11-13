@@ -1,6 +1,6 @@
 echo "start main.sh"
 
-g++ test-back.cpp
+g++ test-back-2.cpp
 ./a.exe
 
 dot -Tpng -o graph1.png graph_1.dot

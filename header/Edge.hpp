@@ -166,7 +166,7 @@ class Edge {
     }
 
 
-    void print(string, string);
+    void print(string, string) const;
 };
 
 const Edge_no Edge::hostDefaultEdge = Edge_no(0);
@@ -185,11 +185,15 @@ Node_no inline Edge::getNode() const {
     return to_node; }
 
 Edge_no inline Edge::getEdge() const { 
-    if ( to_type == NONE || to_type == HOST ) throw IregalManuplateException("[Edge::getEdge()] This Edge have no 'to_edge"); 
+    if ( to_type == NONE || to_type == HOST ) {
+        cout << "[Error] Edge::getEdge()" << endl;
+        throw IregalManuplateException("[Edge::getEdge()] This Edge have no 'to_edge"); 
+    }
+        
     return to_edge;
     }
 
-void Edge::print(string name="Edge", string stuff = "") {
+void Edge::print(string name="Edge", string stuff = "") const{
     string type;
     string tmp = stuff;
     string s_no = (to_type != NONE ) ? to_string(to_node.getNo()) : "-";
@@ -224,8 +228,10 @@ void Edge::print(string name="Edge", string stuff = "") {
 
 bool operator==(const Edge&e1, const Edge&e2) {
    if ( e1.getType() != e2.getType() ) return false;
+   if ( e1.getType() == Edge::edgeType::NONE ) return true;
    if ( e1.getG() != e2.getG() ) return false;
-   if ( e1.getNode() != e2.getNode() ) return false; 
+   if ( e1.getNode() != e2.getNode() ) return false;
+   if ( e1.getType() == Edge::edgeType::HOST ) return true;
    if ( e1.getEdge() != e2.getEdge() ) return false;
 
    return true;
@@ -237,9 +243,11 @@ bool operator!=(const Edge&e1, const Edge&e2 ) {
 
 bool operator<(const Edge& e1, const Edge& e2) {
     if ( e1.getType() != e2.getType() ) return e1.getType() < e2.getType();
+    if ( e1.getType() == Edge::edgeType::NONE ) return false;
     if ( e1.getG() != e2.getG() ) return e1.getG() < e2.getG();
     if ( e1.getNode() != e2.getNode() ) return e1.getNode() < e2.getNode();
+    if ( e1.getType() == Edge::edgeType::HOST ) return false;
     if ( e1.getEdge() != e2.getEdge() ) return e1.getEdge() < e2.getEdge();
-    return true;
+    return false;
 }
 #endif

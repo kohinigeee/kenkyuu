@@ -515,6 +515,7 @@ Graph& Graph::operator=(const Graph& g ) {
 }
 
 bool Graph::isSame(const Graph& graph) {
+    DEB(DEB_HIGH) { cout << "[HIGH]Graph::isSame()" << endl;}
     if ( this->s != graph.s ) return false;
     if ( this->h != graph.h ) return false;
     if ( this->r != graph.r ) return false;
@@ -522,7 +523,9 @@ bool Graph::isSame(const Graph& graph) {
     if ( this->us != graph.us ) return false;
 
     for ( int i = 0; i < this->g; ++i ) {
-        if ( !(parts[i].isSame(graph.parts[i])) ) return false;
+        if ( !(parts[i].isSame(graph.parts[i])) ) {
+            return false;
+        }
     }
     return true;
 }

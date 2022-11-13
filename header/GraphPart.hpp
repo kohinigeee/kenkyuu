@@ -218,29 +218,35 @@ Host&  GraphPart::addHost(const Node_no& s_no, const Edge_no& edge_no) { //ãƒ›ã‚
 }
 
 bool GraphPart::isSame(const GraphPart& gp) {
+    DEB(DEB_HIGH) { cout << "[MIDLE]GraphPart::isSame()" << endl; }
     if ( s != gp.s ) return false;
     if ( g != gp.g ) return false;
     if ( h != gp.h ) return false;
     if ( r != gp.r ) return false;
 
     for ( int i = 0; i < s; ++i ) {
+        DEB(DEB_MIDLE) { cout << "[MIDLE]GraphPart::isSame switch = " << i << endl;}
         if ( !(switchs[i].isSame(gp.switchs[i]))) return false;
     }
 
-    
+    DEB(DEB_MIDLE) { cout << "[MIDLE]GraphPart::isSame hosts start" << endl;} 
     vector<Edge> vec1, vec2;
     for ( int i = 0; i < h; ++i ) {
         Edge e = hosts[i].getEdge();
         e.setEdge(Edge_no(0));
         vec1.push_back(e);
     }
+
     for ( int i = 0; i < h; ++i ) {
         Edge e = gp.hosts[i].getEdge();
         e.setEdge(Edge_no(0));
         vec2.push_back(e);
     }
+    
     sort(vec1.begin(), vec1.end());
     sort(vec2.begin(), vec2.end());
+    
+    DEB(DEB_MIDLE) { cout << "[MIDLE]GraphPart::isSame hosts finish" << endl;}
     return vec1 == vec2;
 }
 
