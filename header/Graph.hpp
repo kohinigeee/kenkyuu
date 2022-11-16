@@ -111,6 +111,7 @@ class Graph {
     //対象グラフに対するswing関数 
     void swing(const Edge& a1, const Edge& b1);
 
+    vector<long long> bfs( int node_no, const long long empv );
 
     //グラフの距離行列を求める
     vector<vector<long long>> calcBFS( const long long INF );
@@ -127,6 +128,10 @@ class Graph {
 
     //同じ形かの判定
     bool isSame(const Graph& g);
+
+    //連結かの判定
+    bool isLinking(); 
+   
 
     //グラフ作成関数
     static Graph make(int s, int h, int r, int g);
@@ -402,8 +407,6 @@ bool Graph::back() {
     } 
     
     S_Type tmp;
-    a.print("back-a");
-    b.print("back-b");
     simple_swing(a,b,tmp);
     return true;
 }
@@ -420,6 +423,31 @@ void Graph::swing(const Edge& a, const Edge& b) {
         Edge swaped_b = getEdge(Edge::edgeType::SWITCH, b_g, b_node, b_edge);
         simple_swing(swaped_a, swaped_b);
     }
+}
+
+vector<long long> Graph::bfs( int node_no , const long long empv = -1 ) {
+    vector<long long> d(s, empv);
+    queue<int> que;
+
+    d[node_no] = 0; 
+    que.push(node_no);
+
+    while(!que.empty()) {
+        int topno = que.front(); que.pop();
+        int gno = topno/us, nno = topno%us;
+
+        const vector<Edge>& edges = getSwitch(G_no(gno), Node_no(nno)).getEdges();
+        for ( const Edge& e : edges ) {
+           if ( e.getType() != Edge::edgeType::SWITCH ) continue;
+           int to_g = e.getG().getNo(), to_node = e.getNode().getNo();
+           int to_sno = to_g*us+to_node;
+           if ( d[to_sno] == empv ) {
+            d[to_sno] = d[topno]+1;
+            que.push(to_sno);
+           } 
+        }
+    }
+    return d;
 }
 
 vector<vector<long long>> Graph::calcBFS( const long long empv = -1) {
@@ -527,6 +555,18 @@ bool Graph::isSame(const Graph& graph) {
             return false;
         }
     }
+    return true;
+}
+
+bool Graph::isLinking() {
+    vector<long long> d0(s);
+    vector<long long> d1(s);
+
+    d0 = bfs(0, -1);
+    d1 = bfs(1, -1);
+
+    for ( auto v : d0 ) if ( v == -1 ) return false;
+    for ( auto v : d1 ) if ( v == -1 ) return false;
     return true;
 }
 
