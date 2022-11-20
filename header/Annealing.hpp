@@ -46,6 +46,8 @@ class Params {
         return params[key]; 
     }
 
+    void set(const string& key, long long value) {params[key] = value;}
+
     void print() {
         cout << "[Paramaters]" << endl;
         for ( auto it = params.begin(); it != params.end(); ++it ) {
@@ -82,6 +84,65 @@ Edge sel_edge( int node_no, Graph& graph, mt19937& mt ) {
         }
     }
     return ans;
+}
+
+//Graph gからEdgeをぬきだしたリストを生成( 同スイッチからのホスト・ループ辺は1つまで)
+vector<Edge> makeEdgeList(Graph& g){
+    vector<Edge> edges;
+    const int hosts_limit = 1;
+    const int loops_limit = 1;
+
+    for ( int i = 0; i < g.getSum_g(); ++i ) {
+        GraphPart& gp = g.getPart(G_no(i));
+        for ( Switch sw : gp.get_switchs() ) {
+            int h = 0; int loop = 0;
+           for ( Edge edge : sw.getEdges() ) {
+            if ( edge.getStatus() == Edge::edgeStatus::LOCKED ) continue;
+            Edge::edgeType type = edge.getType();
+            if ( type == Edge::edgeType::HOST && h < hosts_limit ) {
+                edges.push_back(edge);
+                edges.push_back(edge); ++h;
+                continue;
+            }
+            if ( type == Edge::edgeType::LOOP && loop < loops_limit ) {
+                edges.push_back(edge);
+                edges.push_back(edge); ++loop;
+                continue;
+            }
+            edges.push_back(edge);
+           } 
+        }
+    }
+    return edges;
+}
+//種数は1前提
+pair<Edge, Edge> select_edges3(Graph& graph, mt19937& mt) {
+    vector<Edge> edges = makeEdgeList(graph);
+    uniform_int_distribution<int> dist_edge(0, edges.size()-1);
+
+    const Edge& e1 = edges[dist_edge(mt)];
+    const Edge& e_to = graph.getEdge(e1);
+    Node_no node_no1 = e_to.getNode();
+
+    int forb_node1 = node_no1.getNo();
+    int forb_node2 = -1;
+    if ( e1.getType() == Edge::edgeType::SWITCH ) forb_node2 = e1.getNode().getNo();
+
+    bool isHost = (e1.getType() == Edge::edgeType::HOST );
+
+    while(1) {
+        const Edge& e2 = edges[dist_edge(mt)];
+        const Edge& e2_to = graph.getEdge(e2);
+
+        int node2 = e2_to.getNode().getNo();
+        if ( node2 == forb_node1 || node2 == forb_node2 ) continue;
+
+        int to_node2 = e2.getNode().getNo();
+        if ( to_node2 == forb_node1 || to_node2 == forb_node2 ) continue;
+        if ( e2.getType() == Edge::edgeType::HOST && isHost ) continue;
+
+        return make_pair(e1, e2);
+    }
 }
 
 //グラフ上の2辺を選ぶ(Host辺やloop辺を考慮)

@@ -2,6 +2,7 @@
 #define INCLUDE_GRAPH_HPP
 
 #include"GraphPart.hpp"
+#include"Exeception.hpp"
 #include<vector>
 #include<iostream>
 #include<fstream>
@@ -11,8 +12,6 @@
 #include<random>
 #include<map>
 #include<algorithm>
-
-#define GRAPH__SEDD 10
 
 using graph_info_t = map<string, long long>;
 
@@ -27,6 +26,7 @@ class Graph {
         UNDEF,
     };
 
+    static int graph_seed;
     
     int s, h, r, g; // 合計のs, h
     int us;
@@ -39,7 +39,6 @@ class Graph {
 
     Graph( int s, int h,int r, int g ) : s(s), h(h), r(r), g(g) {
         if ( s < 0 || h < 0 || r < 0 || g < 1 ) throw IregalValueException("[Graph::constructer] Ireagal value for Graph");
-        if ( (s-1)*2+h > s*r ) throw IregalValueException("[Graph::constructer] Ireagal value for Graph ( Graph dones't exists )");
         if ( s%g != 0 || h%g != 0 ) throw IregalValueException("[Graph::constructer] Ireagal value of g");
         parts = vector<GraphPart>();
         us = s/g;
@@ -92,7 +91,6 @@ class Graph {
     }
 
     int deleteHost(const G_no&, const Node_no&);
-    void make();
 
     //単一辺のswing関数(外部からは呼ばない)
     private:
@@ -119,6 +117,10 @@ class Graph {
     //グラフのSSPL(Sum of Shortest Path Length )を求める
     graph_info_t sumD();
 
+    double calcHaspl(long long sumd) {
+        return double(sumd)/(h*(h-1)/2);
+    }
+
     void print(string, string);
 
     bool operator==(const Graph& g);
@@ -132,12 +134,17 @@ class Graph {
     //連結かの判定
     bool isLinking(); 
    
+    //グラフ上のloop辺をランダムにつなげる
+    void linkLoops();
 
     //グラフ作成関数
     static Graph make(int s, int h, int r, int g);
+    static Graph make2(int s, int h, int r, int g, int h_level);
 
     //Dot言語への変換
     static void toDot(string fname, const Graph& graph, double _rd);
+
+    static void set_seed(int seed) { graph_seed = seed; }
 };
 
 bool Graph::isPropEdge(Edge::edgeType type, G_no g_no, Node_no node_no, Edge_no edge_no ) {
@@ -226,29 +233,16 @@ int Graph::deleteHost(const G_no& g_no, const Node_no& node_no) { //消すホス
     return 1;
 }
 
-Graph Graph::make(int s, int h, int r, int g) {
-    Graph graph(s, h, r, g);
-
-    DEB(DEB_MIDLE) { cout << "start make Graph" << endl;}
-    int su = s/g, hu = h/g;
-    GraphPart gp(su, hu, r, G_no(0));
-    DEB(DEB_MIDLE) { cout << "make first GraphPart" << endl; }
-    gp.init();
-    DEB(DEB_MIDLE) { cout << "init finished" << endl; }
-    graph.add(gp);
-    for ( int i = 1; i < g; ++i ) {
-        GraphPart addedgp = graph.parts.back().clone();
-        graph.add(addedgp);
-    }
-    DEB(DEB_MIDLE) { cout << "make finished" << endl;}
+//グラフ上のループ辺をランダムにつなげる
+void Graph::linkLoops() {
 
     vector<vector<Edge>> loops;
     for ( int i = 0; i < s; ++i ) {
         vector<Edge> vec;
-        G_no g_no(i/graph.us); Node_no node_no(i%graph.us);
-        for ( int j = 0; j < graph.r; j++ ) {
+        G_no g_no(i/us); Node_no node_no(i%us);
+        for ( int j = 0; j < r; j++ ) {
             Edge_no edge_no(j);
-            const Edge& e = graph.getSwitch(g_no, node_no).getEdge(j);
+            const Edge& e = getSwitch(g_no, node_no).getEdge(j);
             if ( e.getType() == Edge::edgeType::LOOP ) vec.push_back(e);
         }
         if ( vec.size() > 0 ) loops.push_back(vec);
@@ -256,7 +250,7 @@ Graph Graph::make(int s, int h, int r, int g) {
 
     DEB(DEB_MIDLE) { cout << "serched loops" << endl;}
     mt19937 mt;
-    mt.seed(GRAPH__SEDD);
+    mt.seed(graph_seed);
     vector<int> loopsId(loops.size());
     for ( int i = 0; i < loopsId.size(); ++i ) loopsId[i] = i;
 
@@ -273,7 +267,7 @@ Graph Graph::make(int s, int h, int r, int g) {
         int idno1 = loopsId.size()-1, idno2 = loopsId.size()-2;
         int lno1 = loopsId.back(), lno2 = loopsId[idno2]; 
 
-        graph.simple_swing(loops[lno1].back(), loops[lno2].back()); 
+        simple_swing(loops[lno1].back(), loops[lno2].back()); 
 
         loops[lno1].pop_back(); loops[lno2].pop_back();
         if ( loops[lno1].size() == 0 ) loopsId.pop_back();
@@ -282,7 +276,52 @@ Graph Graph::make(int s, int h, int r, int g) {
             loopsId.pop_back();
         }
     }
+}
+
+Graph Graph::make2(int s, int h, int r, int g, int h_level ) {
+    Graph graph(s, h, r, g);
+
+    int su = s/g, hu = h/g;
+    GraphPart gp(su, hu, r, G_no(0));
+    gp.init2(h_level);
+    graph.add(gp);
+    for ( int i = 1; i < g; ++i ) {
+        GraphPart addedgp = graph.parts.back().clone();
+        graph.add(addedgp);
+    }
+    graph.linkLoops();
+    if ( !graph.isLinking() ) {
+        string msg = "[Error] Graph::make2()::Can't make linking graph\n";
+        cout << msg << endl;
+        throw IregalValueException(msg);
+    }
+    return graph;
+}
+
+Graph Graph::make(int s, int h, int r, int g) {
+    Graph graph(s, h, r, g);
+
+    DEB(DEB_MIDLE) { cout << "start make Graph" << endl;}
+    int su = s/g, hu = h/g;
+    GraphPart gp(su, hu, r, G_no(0));
+    DEB(DEB_MIDLE) { cout << "make first GraphPart" << endl; }
+    gp.init();
+    DEB(DEB_MIDLE) { cout << "init finished" << endl; }
+    graph.add(gp);
+    for ( int i = 1; i < g; ++i ) {
+        GraphPart addedgp = graph.parts.back().clone();
+        graph.add(addedgp);
+    }
+    DEB(DEB_MIDLE) { cout << "make finished" << endl;}
+    graph.linkLoops();
+
     DEB(DEB_MIDLE) { cout << "finisched making" << endl;}
+    if ( !graph.isLinking() ) {
+        string msg = "[Error] Graph::make()::Can't make linking graph\n";
+        cout << msg << endl;
+        graph.toDot("graph1.dot", graph, 3);
+        throw IregalValueException(msg);
+    }
     return graph;
 }
 
@@ -292,6 +331,12 @@ pair<Edge, Edge> Graph::simple_swing ( Edge a1, Edge b1, S_Type& type ) {
      Edge a2 = getEdge(a1);
      Edge b2 = getEdge(b1);
      type = S_Type::UNDEF;
+
+     if ( a1.getStatus() == Edge::edgeStatus::LOCKED || b1.getStatus() == Edge::edgeStatus::LOCKED  ) {
+            cout << "[Eorror] simple_swing():: swing locked edge" << endl;
+            throw IregalManuplateException("swing locked edge");
+     }     
+     
 
     DEB(DEB_HIGH) { cout << "test" << endl;}
     int es = 0, el = 0, eh = 0;
@@ -675,5 +720,5 @@ void Graph::toDot( string fname, const Graph& graph, double _rd = 3 ) {
     ofs.close();
 }
 
-
+int Graph::graph_seed = 10;
 #endif

@@ -4,6 +4,7 @@
 #include "Nodes.hpp"
 #include <iostream>
 #include <vector>
+#include <string>
 #include<algorithm>
 
 
@@ -113,6 +114,7 @@ class GraphPart {
 
     bool operator!=  (const GraphPart& gp ) { return !((*this) == gp);}
 
+    void init2( int h_level, int r_leve);
     //種数1のグラフの生成
     void init();
     bool isRightEdge(const Edge&);
@@ -120,6 +122,89 @@ class GraphPart {
     void deleteHost( const Node_no&);
     void print(string, string);
 };
+
+void GraphPart::init2(int h_level, int r_level = 0 ) {
+    int h_cnt = 0;
+    int s_no = 0;
+    Edge::edgeStatus status = Edge::edgeStatus::UNLOCK;
+    vector<int> cnts(s, 0);
+    set<int> sw_host_nos;
+
+
+    if ( h_level >= r ) {
+        string msg = "[Error]GraphPart::init2() h_level >= number of ports";
+        cout << msg << endl;
+        throw IregalValueException(msg);
+    }
+
+     while(h_cnt < h) {
+        switchs[s_no].setEdge(Edge_no(cnts[s_no]), Edge::makeToHost(g, Node_no(h_cnt), status)); 
+        hosts[h_cnt].setEdge(Edge::makeToSwitich(g, Node_no(s_no), Edge_no(cnts[s_no]), status)); 
+        if ( cnts[s_no] == 0 ) sw_host_nos.insert(s_no);
+        ++h_cnt; cnts[s_no]++;
+        if ( cnts[s_no] >= h_level ) {
+            // for ( ; cnts[s_no] < r; cnts[s_no]+= 1 ) {
+            //     switchs[s_no].setEdge(Edge_no(cnts[s_no]), Edge::makeToLoop(g, Node_no(s_no), Edge_no(cnts[s_no])));
+            //     cnts[s_no] += 1;
+            // }
+            s_no += 1; 
+        }
+        if ( s_no >= s ) {
+            string msg = "[Error]GraphPart::init2() not enough switchs for init2()";
+            cout << msg << endl;
+            throw IregalValueException(msg);
+        }
+    }
+
+    //ホストとのスイッチをあまりのスイッチに均等に割りふる
+    //*********こっから****************
+
+    vector<int> sw_nos; //スイッチ役のスイッチの番号
+    vector<int> sw_host; //ホスト役のスイッチの番号
+
+    for ( int i = 0; i < s; ++i ) {
+        if ( sw_host_nos.find(i) == sw_host_nos.end() ) sw_nos.push_back(i);
+        else sw_host.push_back(i);
+    } 
+
+    int sw_idx = 0;
+    for ( int i = 0; i < sw_host.size(); ++i ) {
+        int node1 = sw_host[i];
+        int node2 = sw_nos[sw_idx];
+        int edge1 = cnts[node1]; 
+        int edge2 = cnts[node2];
+
+        if ( edge1 >= r || edge2 >= r ) {
+            string msg = "[Error] GraphPart::init2():: can't make graph";
+            throw IregalValueException(msg);
+        }
+
+        switchs[node1].setEdge(Edge_no(edge1), Edge::makeToSwitich(G_no(g), Node_no(node2), Edge_no(edge2), status));
+        switchs[node2].setEdge(Edge_no(edge2), Edge::makeToSwitich(G_no(g), Node_no(node1), Edge_no(edge1), status));
+        cnts[node1] += 1; cnts[node2] += 1; 
+
+        sw_idx = (sw_idx+1)%sw_nos.size();
+    }
+    
+    for ( int i = 0; i < sw_nos.size(); ++i ) {
+        int node1 = sw_nos[i];
+        if ( cnts[node1] >= r ) continue;
+        
+        int rnode= sw_nos[(i+1)%sw_nos.size()];
+        
+        if ( cnts[rnode] < r && cnts[node1] < r ) {
+            switchs[node1].setEdge(cnts[node1], Edge::makeToSwitich(g, Node_no(rnode), Edge_no(cnts[rnode]), status));
+            switchs[rnode].setEdge(cnts[rnode], Edge::makeToSwitich(g, Node_no(node1), Edge_no(cnts[node1]), status));
+            ++cnts[rnode]; ++cnts[node1];
+           }
+    }
+    
+    for ( int i = 0; i < s; ++i ) {
+        for ( cnts[i]; cnts[i] < r; ++cnts[i] ) {
+            switchs[i].setEdge(cnts[i], Edge::makeToLoop(G_no(g), Node_no(i), Edge_no(cnts[i])));
+        }
+    }
+}
 
 //種数1のグラフの生成
 void GraphPart::init() {
@@ -136,32 +221,31 @@ void GraphPart::init() {
         ++cnts[sno];
      }
 
-
     int sum_cnt = 0;
     for ( auto v: cnts ) sum_cnt += v;
 
     int sno = 0;
     //スイッチ数が1の場合は例外
     while ( sum_cnt < s*r ) {
-        int rno = (sno+1)%s;
         if ( cnts[sno] >= r ) { sno = (sno+1)%s; continue; }
 
-        if ( cnts[rno] < r ) {
-            switchs[sno].setEdge(cnts[sno], Edge::makeToSwitich(g, Node_no(rno), Edge_no(cnts[rno])));
-            switchs[rno].setEdge(cnts[rno], Edge::makeToSwitich(g, Node_no(sno), Edge_no(cnts[sno])));
-            ++cnts[rno]; ++cnts[sno];
-            sum_cnt += 2;
-           }
-
+        int rno = (sno+1)%s;
         int lno = (sno-1);
         if ( lno < 0 ) lno += s;
 
-        if ( cnts[lno] < r ) {
+        if ( cnts[lno] < r && cnts[sno] < r) {
             switchs[sno].setEdge(cnts[sno], Edge::makeToSwitich(g, Node_no(lno), Edge_no(cnts[lno])));
             switchs[lno].setEdge(cnts[lno], Edge::makeToSwitich(g, Node_no(sno), Edge_no(cnts[sno])));
             ++cnts[sno]; ++cnts[lno];
             sum_cnt += 2;
         }
+
+        if ( cnts[rno] < r && cnts[sno] < r ) {
+            switchs[sno].setEdge(cnts[sno], Edge::makeToSwitich(g, Node_no(rno), Edge_no(cnts[rno])));
+            switchs[rno].setEdge(cnts[rno], Edge::makeToSwitich(g, Node_no(sno), Edge_no(cnts[sno])));
+            ++cnts[rno]; ++cnts[sno];
+            sum_cnt += 2;
+           }
 
         //あまりは自己ループにする
         while ( cnts[sno] < r ) {

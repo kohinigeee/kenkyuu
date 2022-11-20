@@ -105,11 +105,16 @@ class Edge {
         NONE, HOST, SWITCH, LOOP
     };
 
+    enum edgeStatus {
+        LOCKED, UNLOCK
+    };
+
     private:
     edgeType to_type;
     G_no to_g;
     Node_no to_node;
     Edge_no to_edge;
+    edgeStatus status;
     // to_type : 終点のノードのタイプ
     // to_g : 終点のノードが属する種の番号
     // to_no : 終点のノードの種内でのノード番号
@@ -117,17 +122,17 @@ class Edge {
     // to_edge_no : 終点のノード内のエッジ番号 (ホストに対する場合は-1)
 
 
-    Edge( edgeType type, G_no g, Node_no node, Edge_no edge ) : to_type(type), to_g(g), to_node(node), to_edge(edge) {}
+    Edge( edgeType type, G_no g, Node_no node, Edge_no edge, edgeStatus sta= UNLOCK ) : to_type(type), to_g(g), to_node(node), to_edge(edge), status(sta){}
 
     public:
     Edge() { (*this) = Edge::makeNone(); }
 
-    Edge static inline makeToSwitich( const G_no g_no, const Node_no node_no,const Edge_no edge_no ) {
-        return Edge(SWITCH, g_no, node_no, edge_no );
+    Edge static inline makeToSwitich( const G_no g_no, const Node_no node_no,const Edge_no edge_no, edgeStatus sta = edgeStatus::UNLOCK ) {
+        return Edge(SWITCH, g_no, node_no, edge_no, sta);
     }
 
-    Edge static inline makeToHost( const G_no g_no, const Node_no node_no ) {
-        return Edge(HOST, g_no, node_no, hostDefaultEdge);
+    Edge static inline makeToHost( const G_no g_no, const Node_no node_no, edgeStatus sta = edgeStatus::UNLOCK ) {
+        return Edge(HOST, g_no, node_no, hostDefaultEdge, sta);
     }
 
     Edge static inline makeToLoop( const G_no g_no, const Node_no node_no, const Edge_no edge_no ) {
@@ -147,21 +152,19 @@ class Edge {
     //接続先のエッジ番号を取得
     Edge_no inline getEdge() const;
 
+    edgeStatus inline getStatus() const;
+
     void inline setG(const G_no& g ) { this->to_g = g; }
     void inline setType( Edge::edgeType type ) { this->to_type = type; }
     void inline setEdge(const Edge_no& e_no) { this->to_edge = e_no;}
-
-    // Edge inline setType( edgeType type ) {
-    //     switch ( type ) {
-    //         case SWITCH:
-    //     }
-    // }
+    void inline setStatus(const Edge::edgeStatus sta) { this->status = sta; }
 
     Edge& operator=(const Edge& e) {
         this->to_type = e.to_type;
         this->to_g = e.to_g;
         this->to_node = e.to_node;
         this->to_edge = e.to_edge;
+        this->status = e.status;
         return *this;
     }
 
@@ -175,6 +178,7 @@ const Node_no Edge::noneDefaultNode = Node_no(0);
 const G_no Edge::noneDefaultG = G_no(0);
 
 Edge::edgeType inline Edge::getType() const { return to_type; }
+Edge::edgeStatus inline Edge::getStatus() const { return status; }
 
 G_no inline Edge::getG() const { 
     if ( to_type == NONE )  throw IregalManuplateException("[Edge::getG()] his Edge have no 'to_g");
@@ -199,29 +203,19 @@ void Edge::print(string name="Edge", string stuff = "") const{
     string s_no = (to_type != NONE ) ? to_string(to_node.getNo()) : "-";
     string s_g =  (to_type != NONE ) ? to_string(to_g.getNo()) : "-";
     string s_edge_no = ( to_type != NONE && to_type != HOST ) ? to_string(to_edge.getNo()) : "-";
+    string s_status;
 
-    switch (to_type ) {
-     case(HOST):
-        type = "HOST  ";
-        break;
-     case(SWITCH):
-        type = "SWICTH";
-        break;
-     case(NONE):
-        type = "NONE  ";
-        break;
-     case(LOOP):
-        type = "LOOP  ";
-        break;
-     default:
-        type = "UNDEFINED";
-    }
+    vector<string> v_status = {"LOCKED", "UNLOCK"};
+    vector<string> v_type = {"NONE", "HOST", "SWITCH", "LOOP"};
+    s_status = v_status[status];
+    type = v_type[to_type];
 
     tmp += '[' + name + "]{";
     tmp += " [to_type]: "+type;
     tmp += "  [to_g]: "+ s_g;
     tmp += "  [to_node]: "+ s_no;
     tmp += "  [to_edge_no]: "+ s_edge_no;
+    tmp += "  [status] " + s_status;
     tmp += " }";
     cout << tmp << endl;
 }
@@ -233,6 +227,7 @@ bool operator==(const Edge&e1, const Edge&e2) {
    if ( e1.getNode() != e2.getNode() ) return false;
    if ( e1.getType() == Edge::edgeType::HOST ) return true;
    if ( e1.getEdge() != e2.getEdge() ) return false;
+   if ( e1.getStatus() != e2.getStatus() ) return false;
 
    return true;
 }

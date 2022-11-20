@@ -1,3 +1,6 @@
+#ifndef INCLUDE_EXECEPTION_HPP
+#define INCLUDE_EXECEPTION_HPP
+
 #include<string>
 
 using namespace std;
@@ -22,3 +25,5 @@ class IregalManuplateException {
 
     string getMesage() { return msg; }
 };
+
+#endif

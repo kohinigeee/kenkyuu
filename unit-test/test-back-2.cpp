@@ -72,7 +72,7 @@ int main()
             cout << "\ni = " << i << endl;
             g3 = g2;
             g2.toDot("graph_2.dot", g2);
-            pair<Edge, Edge> p = select_edges(g2, mt);
+            pair<Edge, Edge> p = select_edges3(g2, mt);
             p.first.print("A1");
             g2.getEdge(p.first).print("A2");
             p.second.print("B1");

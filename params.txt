@@ -1,0 +1,8 @@
+[Paramaters]
+minT: 1 maxT: 100
+N: 50000
+seed: 50
+
+[Results]
+min_diam = 6
+min_hasple = 5.40726

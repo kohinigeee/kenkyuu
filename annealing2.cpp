@@ -4,6 +4,7 @@
 #include<cmath>
 #include<random>
 #include<string>
+#include<utility>
 
 #include "./header/Debug.hpp"
 #include "./header/functions.hpp"
@@ -26,14 +27,15 @@ int main(int argc, char** args)
     const int N = params.get("N");
     const int seed = params.get("seed");
     double arpha = pow(double(minT)/maxT, double(1)/N);
-    
+
     mt19937 mt;
     uniform_real_distribution<double> div(0, 1);
 
     mt.seed(seed);
+    Graph::set_seed(seed);
 
     try {
-    Graph graph = Graph::make(16, 32, 4, 1);
+    Graph graph = Graph::make(17, 32, 4, 1);
     graph.toDot("graph1.dot", graph); 
 
     double T = maxT;
@@ -45,6 +47,8 @@ int main(int argc, char** args)
     double min_haspl = haspl_prev;
     Graph bestgraph = graph;
 
+    for ( int j = 0; j < 3; ++j ) {
+        graph = bestgraph;
     for ( int i = 0; i < N; ++i ) {
         cout << endl;
         cout << "i = " << i+1 << endl;
@@ -90,10 +94,13 @@ int main(int argc, char** args)
         graph.back();
     }
 
+    }
+
     Graph::toDot("graph2.dot", bestgraph);
     cout << endl;
 
     cout << "[Paramaters]" << endl;
+    cout << "Nubmer of swiths : " << graph.getSum_s() << endl;
     cout << "minT: " << minT << " maxT: " << maxT << endl;
     cout << "N: " << N << endl;
     cout << "seed: " << seed << endl;
