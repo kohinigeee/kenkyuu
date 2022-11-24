@@ -36,10 +36,10 @@ class Graph {
     bool canback; //巻き戻しをできるかどうか
     pair<Edge, Edge> rireki; //前回のsimple_swingの戻り値
 
-
+    public:
     Graph( int s, int h,int r, int g ) : s(s), h(h), r(r), g(g) {
         if ( s < 0 || h < 0 || r < 0 || g < 1 ) throw IregalValueException("[Graph::constructer] Ireagal value for Graph");
-        if ( s%g != 0 || h%g != 0 ) throw IregalValueException("[Graph::constructer] Ireagal value of g");
+        // if ( s%g != 0 || h%g != 0 ) throw IregalValueException("[Graph::constructer] Ireagal value of g");
         parts = vector<GraphPart>();
         us = s/g;
         prevtype = S_Type::UNDEF;
@@ -96,6 +96,8 @@ class Graph {
     private:
     pair<Edge, Edge> simple_swing ( const Edge a1, const Edge b1, S_Type& type );
 
+    vector<vector<Edge>> collectLoops();
+
     public:
     //履歴に残すsimple_swing関数
     void simple_swing( const Edge a1, const Edge b1) {
@@ -137,9 +139,17 @@ class Graph {
     //グラフ上のloop辺をランダムにつなげる
     void linkLoops();
 
+    //すべてのGraphPartを統合したグラフに変形する
+    Graph integrate();
+
     //グラフ作成関数
     static Graph make(int s, int h, int r, int g);
     static Graph make2(int s, int h, int r, int g, int h_level);
+    static Graph make3(int s, int h, int r, int g, int reserved_r);
+
+    //分割アニーリング用(下位グラフ)
+    static Graph makeFromParts(int r, vector<GraphPart>& gps );
+    //分割アニーリング用(上位グラフ)
 
     //Dot言語への変換
     static void toDot(string fname, const Graph& graph, double _rd);
@@ -233,9 +243,8 @@ int Graph::deleteHost(const G_no& g_no, const Node_no& node_no) { //消すホス
     return 1;
 }
 
-//グラフ上のループ辺をランダムにつなげる
-void Graph::linkLoops() {
-
+//Graph上のUNROCKループ辺をあつめる
+vector<vector<Edge>> Graph::collectLoops() {
     vector<vector<Edge>> loops;
     for ( int i = 0; i < s; ++i ) {
         vector<Edge> vec;
@@ -243,10 +252,18 @@ void Graph::linkLoops() {
         for ( int j = 0; j < r; j++ ) {
             Edge_no edge_no(j);
             const Edge& e = getSwitch(g_no, node_no).getEdge(j);
-            if ( e.getType() == Edge::edgeType::LOOP ) vec.push_back(e);
+            if ( e.getType() == Edge::edgeType::LOOP && e.getStatus() == Edge::edgeStatus::UNLOCK ) vec.push_back(e);
         }
         if ( vec.size() > 0 ) loops.push_back(vec);
     }
+    return loops;
+}
+
+//グラフ上のループ辺をランダムにつなげる
+void Graph::linkLoops() {
+
+    vector<vector<Edge>> loops;
+    loops = collectLoops();
 
     DEB(DEB_MIDLE) { cout << "serched loops" << endl;}
     mt19937 mt;
@@ -278,6 +295,60 @@ void Graph::linkLoops() {
     }
 }
 
+//分割アニーリング用
+//reserved_r : 上位グラフ用に確保するポート数
+Graph Graph::make3(int s, int h, int r, int g, int reserved_r) {
+    Graph graph(s, h, r, g);
+
+    int su = s/g, hu = h/g;
+    GraphPart gp(su, hu, r, G_no(0));
+    gp.init();
+    graph.add(gp);
+    for ( int i = 1; i < g; ++i ) {
+        GraphPart addedgp = graph.parts.back().clone();
+        graph.add(addedgp);
+    }
+
+    vector<vector<Edge>> loops = graph.collectLoops();
+
+    int max_size = 0;
+    int sum_loops = 0;
+    for ( auto v : loops ) {
+        max_size = max(max_size, int(v.size()));
+        sum_loops += v.size();
+    }
+
+    vector<vector<Edge>> loops2(max_size);
+    for ( auto v : loops ) {
+        for ( int i = 0; i < v.size(); ++i ) {
+            loops2[i].push_back(v[i]);
+        }
+    } 
+
+    if ( reserved_r > sum_loops ) {
+        string msg = "[Error] Graph::make3()::enough loop edges for reserved_r";
+        cout << msg << endl;
+        throw IregalValueException(msg);
+    }
+    int cnt = 0;
+    for ( auto edges: loops ) {
+        for ( auto edge : edges ) {
+            edge.setStatus(Edge::edgeStatus::LOCKED);
+            graph.getSwitch(edge.getG(), edge.getNode()).setEdge(edge.getEdge(), edge);
+            ++cnt;
+            if ( cnt >= reserved_r ) break;
+        }
+        if ( cnt >= reserved_r ) break;
+    }
+
+    graph.linkLoops();
+    if ( !graph.isLinking() ) {
+        string msg = "[Error] Graph::make3()::Can't make linking graph\n";
+        cout << msg << endl;
+        throw IregalValueException(msg);
+    }
+    return graph;
+}
 Graph Graph::make2(int s, int h, int r, int g, int h_level ) {
     Graph graph(s, h, r, g);
 
@@ -321,6 +392,21 @@ Graph Graph::make(int s, int h, int r, int g) {
         cout << msg << endl;
         graph.toDot("graph1.dot", graph, 3);
         throw IregalValueException(msg);
+    }
+    return graph;
+}
+
+Graph Graph::makeFromParts(int r, vector<GraphPart>& gps ) {
+    int g = gps.size();
+    int s = 0;
+    int h = 0;
+    for ( const auto& gp : gps ) { s += gp.get_ssize(); h += gp.get_hsize(); }
+
+    Graph graph(s, h, r, g);
+
+    for ( int i = 0; i < g; ++i ) {
+        GraphPart tmp = gps[i].changeGno(G_no(i));
+        graph.add(tmp);
     }
     return graph;
 }
@@ -470,6 +556,7 @@ void Graph::swing(const Edge& a, const Edge& b) {
     }
 }
 
+//すべてのGraphPartのスイッチ数が均等なこと前提
 vector<long long> Graph::bfs( int node_no , const long long empv = -1 ) {
     vector<long long> d(s, empv);
     queue<int> que;
@@ -527,7 +614,8 @@ vector<vector<long long>> Graph::calcBFS( const long long empv = -1) {
 
 graph_info_t Graph::sumD() {
     vector<vector<long long>> d = calcBFS();
-    long long ans = 0;
+    long long ans = 0; //ホスト間の最短距離の総和
+    long long sumd = 0; //スイッチ間の讃嘆距離の総和
     long long diam = 0;
     pair<long long, long long> e;
     
@@ -558,6 +646,49 @@ graph_info_t Graph::sumD() {
     return v;
 }
 
+Graph Graph::integrate() {
+    vector<long long> sums(g,0);
+    vector<long long> sumh(g,0);
+
+    GraphPart ans(s, h, r, G_no(0));
+    for ( int i = 1; i < g; ++i ) { 
+        sums[i] = sums[i-1]+parts[i-1].get_ssize();
+        sumh[i] = sumh[i-1]+parts[i-1].get_hsize();
+    }
+
+    for ( int i = 0; i < g; ++i ) {
+        GraphPart& gp = getPart(G_no(i));
+        for ( int j = 0; j < gp.get_ssize(); ++j ) {
+            Switch sw = gp.get_switch(Node_no(j));
+            int sno = sums[i]+j;
+
+            for ( int k = 0; k < r; ++k ) {
+                Edge& edge = sw.getEdge(Edge_no(k));
+                int to_no;
+                if ( edge.getType() == Edge::edgeType::HOST ) {
+                    to_no = sumh[edge.getG().getNo()]+edge.getNode().getNo();
+                } else to_no = sums[edge.getG().getNo()]+edge.getNode().getNo();
+
+                edge.setG(G_no(0));
+                edge.setNode(Node_no(to_no));
+            }
+            ans.get_switch(Node_no(sno)) = sw;
+        }
+        for ( int j = 0; j < gp.get_hsize(); ++j ) {
+            int node_no = sumh[i]+j;
+            Host h = gp.get_host(Node_no(j));
+            Edge& edge = h.getEdge();
+            int to_no = sums[edge.getG().getNo()]+edge.getNode().getNo();
+            edge.setG(G_no(0));
+            edge.setNode(Node_no(to_no));
+            ans.get_host(Node_no(node_no)) = h;
+        }
+    }
+
+    Graph graph = Graph(s, h, r, 1);
+    graph.add(ans);
+    return graph;
+}
 
 bool Graph::operator==(const Graph& graph ) {
     DEB(DEB_LOW) { cout << "[Log] Graph operator==" << endl;}
@@ -578,7 +709,7 @@ bool Graph::operator!=(const Graph& g ) {
 }
 
 Graph& Graph::operator=(const Graph& g ) {
-    s = g.s; h = g.h; r = g.r; this->g = g.g;
+    s = g.s; h = g.h; r = g.r; this->g = g.g; us = g.us;
     parts = g.parts;
 
     prevtype = g.prevtype;
@@ -618,7 +749,7 @@ bool Graph::isLinking() {
 void Graph::print(string name = "Graph", string stuff="" ) {
     string tmp = stuff+"   ";
     cout << stuff << '[' + name + ']' << endl;
-    cout << tmp << "s_size=" << s << " h_size=" << h << " g=" << g << " r=" << r << endl;
+    cout << tmp << "s_size=" << s << " h_size=" << h << " g=" << g << " r=" << r << " us = " << us << endl;
     cout << endl;
     for ( int i = 0; i < parts.size(); ++i ) {
         parts[i].print("GraphPart "+to_string(i), tmp);

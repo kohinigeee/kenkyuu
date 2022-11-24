@@ -135,8 +135,8 @@ class Edge {
         return Edge(HOST, g_no, node_no, hostDefaultEdge, sta);
     }
 
-    Edge static inline makeToLoop( const G_no g_no, const Node_no node_no, const Edge_no edge_no ) {
-        return Edge(LOOP, g_no, node_no, edge_no);
+    Edge static inline makeToLoop( const G_no g_no, const Node_no node_no, const Edge_no edge_no, edgeStatus sta = edgeStatus::UNLOCK ) {
+        return Edge(LOOP, g_no, node_no, edge_no, sta);
     }
 
     Edge static inline makeNone() {
@@ -155,6 +155,7 @@ class Edge {
     edgeStatus inline getStatus() const;
 
     void inline setG(const G_no& g ) { this->to_g = g; }
+    void inline setNode(const Node_no& n) { this->to_node = n; }
     void inline setType( Edge::edgeType type ) { this->to_type = type; }
     void inline setEdge(const Edge_no& e_no) { this->to_edge = e_no;}
     void inline setStatus(const Edge::edgeStatus sta) { this->status = sta; }

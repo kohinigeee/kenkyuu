@@ -121,6 +121,10 @@ class GraphPart {
     Host& addHost(const Node_no&, const Edge_no&);
     void deleteHost( const Node_no&);
     void print(string, string);
+
+    //GraphPart の種番号だけを変えたものを返す
+    GraphPart changeGno(G_no g_no);
+    
 };
 
 void GraphPart::init2(int h_level, int r_level = 0 ) {
@@ -352,6 +356,25 @@ void GraphPart::print(string name="GraphPart", string stuff="" ) {
         hosts[i].print("Host "+to_string(i), tmp);
     }
     cout << stuff << '[' << name << "]"+arrow+">" << endl;
+}
+
+//破壊的なので注意
+GraphPart GraphPart::changeGno(G_no g_no) {
+    GraphPart gp = (*this);
+
+    gp.g = g_no;
+    for ( auto& sw : gp.switchs ) {
+        for ( int i = 0; i < sw.get_r(); ++i ) {
+            Edge& edge = sw.getEdge(Edge_no(i));
+            edge.setG(g_no);
+        }
+    }
+    for ( auto& host : gp.hosts ) {
+        Edge& edge = host.getEdge();
+        edge.setG(g_no);
+    }
+
+    return gp;
 }
 
 #endif

@@ -116,6 +116,7 @@ vector<Edge> makeEdgeList(Graph& g){
     return edges;
 }
 //種数は1前提
+//各エッジについて均等 O(nr)
 pair<Edge, Edge> select_edges3(Graph& graph, mt19937& mt) {
     vector<Edge> edges = makeEdgeList(graph);
     uniform_int_distribution<int> dist_edge(0, edges.size()-1);
