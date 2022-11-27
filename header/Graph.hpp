@@ -139,6 +139,9 @@ class Graph {
     //グラフ上のloop辺をランダムにつなげる
     void linkLoops();
 
+    //グラフ上のホスト辺以外を自己ループにする
+    void loopInit();
+
     //すべてのGraphPartを統合したグラフに変形する
     Graph integrate();
 
@@ -646,6 +649,8 @@ graph_info_t Graph::sumD() {
     return v;
 }
 
+
+//複数のGraphPartを1つに統合
 Graph Graph::integrate() {
     vector<long long> sums(g,0);
     vector<long long> sumh(g,0);
@@ -688,6 +693,25 @@ Graph Graph::integrate() {
     Graph graph = Graph(s, h, r, 1);
     graph.add(ans);
     return graph;
+}
+
+//ホスト辺以外の辺を全て自己ループにする
+void Graph::loopInit() {
+    for ( int i = 0; i < getSum_g(); ++i ) {
+        GraphPart& gp = getPart(G_no(i));
+        for ( int j = 0; j < gp.get_ssize(); ++j ) {
+            Switch& sw = gp.get_switch(Node_no(j));
+            for ( int k = 0; k < sw.get_r(); k++ ) {
+                Edge e = sw.getEdge(Edge_no(k));
+                if ( e.getType() == Edge::edgeType::HOST ) continue;
+                e.setType(Edge::edgeType::LOOP);
+                e.setG(gp.get_gno());
+                e.setNode(Node_no(j));
+                e.setEdge(Edge_no(k));
+                sw.setEdge(Edge_no(k), e);
+            }
+        }
+    }
 }
 
 bool Graph::operator==(const Graph& graph ) {
