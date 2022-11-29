@@ -14,36 +14,28 @@ using namespace std;
 int main()
 {
     debug_off();
-    annealing_log_off();
+    annealing_log_off(0);
 
     DEB(DEB_HIGH) { cout << "test" << endl;}
     string outf = "before_swing.dot";
     string outf2 = "after_swing.dot";
 
     try { 
-      Graph graph = Graph::make(20, 32, 4, 1);
+      Graph graph = Graph::make(27, 32, 4, 1);
       mt19937 mt;
       Params params = Params();
-      mt.seed(10);
+      params.set("N", 4000);
+      mt.seed(12);
 
-      Graph best = annealing(graph, params, select_edges3);
-      graph_info_t info = graph.sumD();
+      Graph best = annealingWithMDST(200, graph, params, select_edges3, mt);
+    //   Graph best = annealing(graph, params, select_edges3);
+      graph_info_t info = best.sumD();
 
-      best.toDot("graph1.dot", best, 5);
-      cout << "diam = " << info["diam"] << endl; 
-
-      Graph tree = makeMDTgraph(best);
-
-      tree.toDot("graph2.dot", tree, 5);
-      tree.print("Tree");
-
-      info = tree.sumD();
-      cout << "diam = " << info["diam"] << endl; 
-      cout << "points = " << info["v1"] << ", " << info["v2"] << endl;
-
-      tree.linkLoops();
-
-      tree.toDot("graph3.dot", tree, 5);
+      best.toDot("graph2.dot", best, 5);
+      cout << "\n" << "results" << endl;
+      params.print();
+      cout << "diam = " << info["diam"] << endl;
+      cout << "haspl = " << best.calcHaspl(info["sumd"]); 
 
     } catch ( IregalManuplateException e ) {
         cout << e.getMesage() << endl;

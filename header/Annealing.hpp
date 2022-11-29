@@ -209,4 +209,60 @@ pair<Edge, Edge> select_edges(Graph& graph, mt19937& mt ) {
         return make_pair(e1, e2);
     }
 }
+
+// 直径も評価に含む評価関数
+//@T: 現在の焼きなましの温度
+double eval1(Graph& newGraph, graph_info_t& newInfo,  graph_info_t& prevInfo, double T ) {
+    double prev_haspl = newGraph.calcHaspl(prevInfo["sumd"]);
+    double new_haspl = newGraph.calcHaspl(newInfo["sumd"]);
+    long long prev_diam = prevInfo["diam"];
+    long long new_diam = newInfo["diam"];
+
+    if ( new_diam < prev_diam ) return 1.5;
+
+    double delta = (new_haspl-prev_haspl)*newGraph.getSum_s()*(newGraph.getSum_h()-1);
+    if ( delta < 0 ) return 1.5;
+
+    double prob = pow(M_E, -(delta/T));
+
+    return prob;
+}
+
+pair<Edge,Edge> bias(Graph& graph, pair<Edge,Edge>& p, mt19937& mt ) {
+    uniform_real_distribution<double> dis(0, 1);
+    pair<Edge, Edge> ans;
+    Edge e1_to = p.first;
+    Edge e2_to = p.second;
+
+    Edge e1_from = graph.getEdge(e1_to);
+    Edge e2_from = graph.getEdge(e2_to);
+
+    int na, nb, nc, nd;
+
+    if ( e1_from.getType() == Edge::edgeType::HOST ) na = 1;
+    else na = graph.getSwitch(e1_from.getG(), e1_from.getNode()).get_ssize();
+    if ( e1_to.getType() == Edge::edgeType::HOST ) nb = 1;
+    else nb = graph.getSwitch(e1_to.getG(), e1_to.getNode()).get_ssize();
+
+    double prob;
+    if ( na+nb == 0 ) prob = 0;
+    else prob = double(nb)/(na+nb);
+
+    if ( dis(mt) <= prob ) ans.first = e1_from;
+    else ans.first = e1_to;
+
+    if ( e2_from.getType() == Edge::edgeType::HOST ) nc = 1;
+    else nc = graph.getSwitch(e2_from.getG(), e2_from.getNode()).get_ssize();
+    if ( e2_to.getType() == Edge::edgeType::HOST ) nd = 1;
+    else nd = graph.getSwitch(e2_to.getG(), e2_to.getNode()).get_ssize();
+
+    if ( nd+nc == 0 ) prob = 0;
+    else prob = double(nd)/(nc+nd);
+
+    if ( dis(mt) <= prob ) ans.second = e2_from;
+    else ans.second = e2_to;
+
+   return ans; 
+}
+
 #endif 

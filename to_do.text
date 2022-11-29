@@ -10,3 +10,10 @@ Swingのパターン要検証
  randomに辺を選ぶ用のセット(Graph partにもたせる)
  幅優先探索を1/2にできるように
  
+ 数値検証：
+ divide_annealingのスイッチとホストの分配の仕方を考える
+ divide_annealingを用いた、性能比較と実行時間比較
+ mdstを用いたannealingによる、性能比較と実行時間比較
+ (divideとmdstを組み合わせる?)
+ スイッチの数sに対して山登り?
+ 先行論文の偏りつける選択を実装

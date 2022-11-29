@@ -74,6 +74,7 @@ class Switch {
     inline int get_hsize() const { return h; }
     inline int get_r() const { return r; }
     inline int get_loop() const { return loop; }
+    inline int get_ssize() const { return r-h-loop; }
 
     inline Edge& getEdge( Edge_no no ) { return edges[no.getNo()]; }
     inline const Edge& getEdge( Edge_no no ) const{ return edges[no.getNo()]; }
