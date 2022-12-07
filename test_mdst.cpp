@@ -26,11 +26,13 @@ int main(int argc, char** args)
     param.set("minT", param.get("N")*minTa);
     param.set("maxT", param.get("N")*maxTa);
     
-    const int s = 25;
-    const int h = 32;
-    const int r = 4;
-    const int n = 10;
-    const int range = 5;
+    const int s = 44;
+    const int h = 432;
+    const int r = 12;
+    const int n = 50;
+    const int range = 20;
+
+    string fname = "./python/results/results_mdst_4.txt";
 
     vector<int> s_values;
     vector<Results> results1, results2, results3;
@@ -91,7 +93,6 @@ int main(int argc, char** args)
         results3[i].print();
     }
     
-    string fname = "./python/results/results_mdst_1.txt";
 
     ofstream ofs(fname);
     if ( !ofs ) {

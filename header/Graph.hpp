@@ -880,6 +880,7 @@ void Graph::toDot( string fname, const Graph& graph, double _rd, string label) {
     ofs << "graph test2 {\n";
     ofs << "\tgraph [\n";
     ofs << "\t\tcharset=\"utf-8\",\n";
+
     ofs << "\t\tlayout=neato,\n";
     ofs << "\t\tlabel=\"" << label << "\"";
     ofs << "\t];\n";
@@ -903,11 +904,16 @@ void Graph::toDot( string fname, const Graph& graph, double _rd, string label) {
     rd = _rd;
 
     //スイッチの配置を記述
+    int node_fontsize = 14;
     for ( int i = 0; i < g; ++i ) {
         const GraphPart& gp = graph.getPart(i);
         int color_no = i%colors+1;
         ofs << "\tsubgraph cluster_sub" << i << " {\n";
         ofs << "\tnode[ color=" << color_no << " ]\n";
+        ofs << "\tnode[\n";
+        ofs << "\t\tcolor=" << color_no << "\n";
+        ofs << "\t\tfontsize=" << node_fontsize<< "\n";
+        ofs << "\t]\n";
 
         for ( int j = 0; j < s; ++j ) {
             const Switch& sw = gp.get_switch(j);
@@ -917,7 +923,6 @@ void Graph::toDot( string fname, const Graph& graph, double _rd, string label) {
             int s_abs = i*s+j;
 
             ofs << '\t' << s_abs << "[\n";
-            cout << "x = " << tmp_cx << ", y = " << tmp_cy << endl;
             sprintf_s(str, "\t\tpos=\"%0.5lf, %0.5lf!\", \n", tmp_cx, tmp_cy);
             ofs << str;
             sprintf_s(str, "\t\tlabel=\"%d (%d)", s_abs, sw.get_hsize());

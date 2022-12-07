@@ -213,6 +213,7 @@ Graph divideAnnealing( Params& params, const int s, const int h, const int r, in
     for ( int i = 0; i < h%groups; ++i ) values[i].second += 1;
 
     Graph ans = divideAnnealing(params, groups, r, values, ports, free);
+    ans.linkLoops(true);
 
     return ans;
 }

@@ -25,8 +25,8 @@ pair<long long, int> calcEdgeCenter(int a, int b, vector<vector<long long>>& d) 
             ming = tmpv; set = 0;
         }
         if ( tmpv == ming ) {
-            if ( d[a][i] < d[b][i] ) set = set | bbig;
-            if ( d[a][i] > d[b][i] ) set = set | abig;
+            if ( d[a][i] <= d[b][i] ) set = set | bbig;
+            if ( d[a][i] >= d[b][i] ) set = set | abig;
         }
     }
 
@@ -90,6 +90,17 @@ vector<pair<Edge,Edge>> mdst(Graph& graph) {
         tmpd[nodes.second] = 0;
         que.push(nodes.first);
         que.push(nodes.second);
+
+        const Switch& sw = graph.getSwitch(G_no(0), Node_no(nodes.first));
+
+        for ( const Edge& edge : sw.getEdges()) {
+            if ( edge.getType() != Edge::edgeType::SWITCH ) continue;
+            if( edge.getNode().getNo() == nodes.second ) {
+                Edge to_edge = graph.getEdge(edge);
+                tree.push_back(make_pair(edge, to_edge));
+                break;
+            }
+        }
     }
 
     G_no g_no = G_no(0);

@@ -1,5 +1,6 @@
 import matplotlib as mp
 import matplotlib.pyplot as plt
+import sys
 
 class Results:
     def __init__(self, name):
@@ -16,7 +17,7 @@ class Results:
     def getName( self ):
         return self.name 
     
-fname = "results_mdst_1"
+fname = sys.argv[1]
 path = "results/"+fname+".txt"
 
 
