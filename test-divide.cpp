@@ -12,8 +12,8 @@ int main() {
     debug_off();
     annealing_log_off_all();
 
-    const int s = 100;
-    const int h = 1281, r = 21;
+    const int s = 1400;
+    const int h = 10000, r = 10;
     const int free = 0;
     const int n = 10;
     Params param = Params();

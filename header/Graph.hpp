@@ -346,7 +346,7 @@ Graph Graph::make3(int s, int h, int r, int g, int reserved_r) {
     } 
 
     if ( reserved_r > sum_loops ) {
-        string msg = "[Error] Graph::make3()::enough loop edges for reserved_r";
+        string msg = "[Error] Graph::make3()::not enough loop edges for reserved_r";
         cout << msg << endl;
         throw IregalValueException(msg);
     }
