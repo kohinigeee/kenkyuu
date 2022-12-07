@@ -17,3 +17,9 @@ Swingのパターン要検証
  (divideとmdstを組み合わせる?)
  スイッチの数sに対して山登り?
  先行論文の偏りつける選択を実装
+
+ 温度はN*0.1 ~ N*10
+
+ 1.select_edge_normalと、select_edges_hlの比較
+ 2.annealing_withMDSTとrandom初期解、先行研究初期解の比較
+ 3.

@@ -11,27 +11,28 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char** args)
 {
     debug_off();
     annealing_log_off(0);
 
-    DEB(DEB_HIGH) { cout << "test" << endl;}
-    string outf = "before_swing.dot";
-    string outf2 = "after_swing.dot";
+    vector<string> arg;
+    for ( int i = 1; i < argc; ++i ) arg.push_back(string(args[i]));
+
+    Params params = Params(arg);
+    const int s = 28, h = 32, r = 4, g = 1;
+
 
     try { 
-      Graph graph = Graph::make(27, 32, 4, 1);
-      mt19937 mt;
-      Params params = Params();
-      params.set("N", 4000);
-      mt.seed(12);
+      Graph::set_seed(params.get("seed"));
+      Graph graph = Graph::makeRandom(s, h, r); 
 
-      Graph best = annealingWithMDST(200, graph, params, select_edges3, mt);
-    //   Graph best = annealing(graph, params, select_edges3);
-      graph_info_t info = best.sumD();
+      Graph::toDot("graph1.dot", graph, 5);
+      graph.print();
 
-      best.toDot("graph2.dot", best, 5);
+      Graph best = annealing(graph, params, select_edges3);
+      graph_info_t info =best.sumD();
+
       cout << "\n" << "results" << endl;
       params.print();
       cout << "diam = " << info["diam"] << endl;

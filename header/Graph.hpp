@@ -94,14 +94,14 @@ class Graph {
 
     //単一辺のswing関数(外部からは呼ばない)
     private:
-    pair<Edge, Edge> simple_swing ( const Edge a1, const Edge b1, S_Type& type );
+    pair<Edge, Edge> simple_swing ( const Edge a1, const Edge b1, S_Type& type, bool);
 
-    vector<vector<Edge>> collectLoops();
+    vector<vector<Edge>> collectLoops(bool);
 
     public:
     //履歴に残すsimple_swing関数
-    void simple_swing( const Edge a1, const Edge b1) {
-      this->rireki = simple_swing(a1, b1, prevtype); 
+    void simple_swing( const Edge a1, const Edge b1, bool isLockedOK = false) {
+      this->rireki = simple_swing(a1, b1, prevtype, isLockedOK); 
       this->canback = true;
     }
 
@@ -135,9 +135,9 @@ class Graph {
 
     //連結かの判定
     bool isLinking(); 
-   
+
     //グラフ上のloop辺をランダムにつなげる
-    void linkLoops();
+    void linkLoops(bool);
 
     //グラフ上のホスト辺以外を自己ループにする
     void loopInit();
@@ -148,16 +148,32 @@ class Graph {
     //グラフ作成関数
     static Graph make(int s, int h, int r, int g);
     static Graph make2(int s, int h, int r, int g, int h_level);
-    static Graph make3(int s, int h, int r, int g, int reserved_r);
-
     //分割アニーリング用(下位グラフ)
-    static Graph makeFromParts(int r, vector<GraphPart>& gps );
+    static Graph make3(int s, int h, int r, int g, int reserved_r);
     //分割アニーリング用(上位グラフ)
+    static Graph makeFromParts(int r, vector<GraphPart>& gps );
+
+    static Graph makeRandom(int s, int h, int r );
 
     //Dot言語への変換
-    static void toDot(string fname, const Graph& graph, double _rd);
+    static void toDot(string fname, const Graph& graph, double _rd = 3.0,  string label = "");
 
     static void set_seed(int seed) { graph_seed = seed; }
+
+    //Graph同士の比較(直径とhasplによる辞書順: a < b ) ※つまり、aのグラフの方が良いグラフ
+    static bool compare(Graph& a, graph_info_t& a_info, Graph& b, graph_info_t& b_info) {
+        if ( a.getSum_s() != b.getSum_s() || a.getSum_h() != b.getSum_h() || a.get_r() != b.get_r() ) {
+            string msg = "[Error] compare diffrent type graphs";
+            throw IregalManuplateException(msg);
+        }
+
+        if ( a_info["diam"] == b_info["diam"] ) {
+            double ahaspl = a.calcHaspl(a_info["sumd"]);
+            double bhaspl = b.calcHaspl(b_info["sumd"]);
+            return ahaspl < bhaspl;
+        }
+        return a_info["diam"] < b_info["diam"];
+    }
 };
 
 bool Graph::isPropEdge(Edge::edgeType type, G_no g_no, Node_no node_no, Edge_no edge_no ) {
@@ -247,7 +263,7 @@ int Graph::deleteHost(const G_no& g_no, const Node_no& node_no) { //消すホス
 }
 
 //Graph上のUNROCKループ辺をあつめる
-vector<vector<Edge>> Graph::collectLoops() {
+vector<vector<Edge>> Graph::collectLoops(bool isLockedOk = false ) {
     vector<vector<Edge>> loops;
     for ( int i = 0; i < s; ++i ) {
         vector<Edge> vec;
@@ -255,7 +271,8 @@ vector<vector<Edge>> Graph::collectLoops() {
         for ( int j = 0; j < r; j++ ) {
             Edge_no edge_no(j);
             const Edge& e = getSwitch(g_no, node_no).getEdge(j);
-            if ( e.getType() == Edge::edgeType::LOOP && e.getStatus() == Edge::edgeStatus::UNLOCK ) vec.push_back(e);
+            if ( isLockedOk == false && e.getStatus() == Edge::edgeStatus::LOCKED ) continue;
+            if ( e.getType() == Edge::edgeType::LOOP ) vec.push_back(e);
         }
         if ( vec.size() > 0 ) loops.push_back(vec);
     }
@@ -263,10 +280,10 @@ vector<vector<Edge>> Graph::collectLoops() {
 }
 
 //グラフ上のループ辺をランダムにつなげる
-void Graph::linkLoops() {
+void Graph::linkLoops(bool isLockeOk = false ) {
 
     vector<vector<Edge>> loops;
-    loops = collectLoops();
+    loops = collectLoops(isLockeOk);
 
     DEB(DEB_MIDLE) { cout << "serched loops" << endl;}
     mt19937 mt;
@@ -287,7 +304,7 @@ void Graph::linkLoops() {
         int idno1 = loopsId.size()-1, idno2 = loopsId.size()-2;
         int lno1 = loopsId.back(), lno2 = loopsId[idno2]; 
 
-        simple_swing(loops[lno1].back(), loops[lno2].back()); 
+        simple_swing(loops[lno1].back(), loops[lno2].back(), isLockeOk); 
 
         loops[lno1].pop_back(); loops[lno2].pop_back();
         if ( loops[lno1].size() == 0 ) loopsId.pop_back();
@@ -414,18 +431,80 @@ Graph Graph::makeFromParts(int r, vector<GraphPart>& gps ) {
     return graph;
 }
 
+Graph Graph::makeRandom(int s, int h, int r) {
+    mt19937 mt;
+    mt.seed(graph_seed);
+    vector<int> tree = makeRandomTree(s, r, mt);
+
+    Graph graph(s, h, r, 1);
+    GraphPart gp(s, h, r, 0);
+    vector<int> cnt(s, 0);
+
+    for ( int i = 0; i < s; ++i ) {
+        if ( tree[i] == -1 ) continue;
+        int p = tree[i];
+        Edge e1 = Edge::makeToSwitich(G_no(0), Node_no(i), Edge_no(cnt[i]));
+        Edge e2 = Edge::makeToSwitich(G_no(0), Node_no(p), Edge_no(cnt[p]));
+
+        gp.get_switch(Node_no(p)).setEdge(Edge_no(cnt[p]), e1);
+        gp.get_switch(Node_no(i)).setEdge(Edge_no(cnt[i]), e2);
+        ++cnt[i]; ++cnt[p];
+    }
+
+    vector<int> pools;
+    for ( int i = 0; i < s; ++i ) if ( cnt[i] < r ) pools.push_back(i);
+    for ( int i = 0; i < h; ++i ) {
+        if ( pools.size() == 0 ) {
+            string msg = "[Error] Graph::makeRandom not enough ports to make graph";
+            cout << msg << endl;
+            throw IregalValueException(msg);
+        }
+
+        uniform_int_distribution<int> div(0, pools.size()-1);
+        int idx = div(mt);
+        int no = pools[idx];
+
+        gp.get_switch(Node_no(no)).setEdge(Edge_no(cnt[no]), Edge::makeToHost(G_no(0), Node_no(i)));
+        gp.get_host(Node_no(i)).setEdge(Edge::makeToSwitich(G_no(0), Node_no(no), Edge_no(cnt[no])));
+        cnt[no] += 1;
+        if ( cnt[no] >= r ) {
+            swap(pools[idx], pools.back());
+            pools.pop_back();
+        }
+    }
+
+    for ( int i = 0; i < s; ++i ) {
+        Switch& sw = gp.get_switch(Node_no(i));
+        for ( int j = cnt[i]; j < r; ++j ) {
+            sw.setEdge(Edge_no(j), Edge::makeToLoop(G_no(0), Node_no(i), Edge_no(j)));
+        }
+    }
+
+    graph.add(gp);
+    graph.linkLoops();
+
+    if ( !graph.isLinking() ) {
+        string msg = "[Error] Graph::makeRandom made not linking graph";
+        cout << msg << endl;
+        throw IregalManuplateException(msg);
+    }
+
+    return graph;
+}
+
 //単一swing処理
-pair<Edge, Edge> Graph::simple_swing ( Edge a1, Edge b1, S_Type& type ) {
+pair<Edge, Edge> Graph::simple_swing ( Edge a1, Edge b1, S_Type& type, bool isLockedOk = false ) {
     DEB(DEB_HIGH) { cout << "[Log]Graph::simple_swing() " << endl; }
      Edge a2 = getEdge(a1);
      Edge b2 = getEdge(b1);
      type = S_Type::UNDEF;
-
-     if ( a1.getStatus() == Edge::edgeStatus::LOCKED || b1.getStatus() == Edge::edgeStatus::LOCKED  ) {
-            cout << "[Eorror] simple_swing():: swing locked edge" << endl;
-            throw IregalManuplateException("swing locked edge");
-     }     
      
+     if ( isLockedOk == false ) {
+        if ( a1.getStatus() == Edge::edgeStatus::LOCKED || b1.getStatus() == Edge::edgeStatus::LOCKED  ) {
+                cout << "[Eorror] simple_swing():: swing locked edge" << endl;
+                throw IregalManuplateException("swing locked edge");
+        }     
+     }
 
     DEB(DEB_HIGH) { cout << "test" << endl;}
     int es = 0, el = 0, eh = 0;
@@ -785,7 +864,7 @@ void Graph::print(string name = "Graph", string stuff="" ) {
 
 //Dot言語に変換する関数
 //[注意] print()関数の直後に実行すると出力がバグる
-void Graph::toDot( string fname, const Graph& graph, double _rd = 3 ) {
+void Graph::toDot( string fname, const Graph& graph, double _rd, string label) {
     cout << flush;
     ofstream ofs(fname);
     if ( !ofs ) {
@@ -794,11 +873,15 @@ void Graph::toDot( string fname, const Graph& graph, double _rd = 3 ) {
     }
 
     char str[256];
+    if ( label == "" ) {
+        label = "s:"+to_string(graph.getSum_s())+" h:"+to_string(graph.getSum_h())+" r:"+to_string(graph.get_r());
+    }
 
     ofs << "graph test2 {\n";
     ofs << "\tgraph [\n";
     ofs << "\t\tcharset=\"utf-8\",\n";
-    ofs << "\t\tlayout=neato\n";
+    ofs << "\t\tlayout=neato,\n";
+    ofs << "\t\tlabel=\"" << label << "\"";
     ofs << "\t];\n";
 
     ofs << "\tnode [\n";
@@ -816,7 +899,7 @@ void Graph::toDot( string fname, const Graph& graph, double _rd = 3 ) {
     double rd; //半径
     double theta = 90;
 
-    cx = 5, 5;
+    cx = 5, cy = 5;
     rd = _rd;
 
     //スイッチの配置を記述
@@ -834,7 +917,8 @@ void Graph::toDot( string fname, const Graph& graph, double _rd = 3 ) {
             int s_abs = i*s+j;
 
             ofs << '\t' << s_abs << "[\n";
-            sprintf_s(str, "\t\tpos=\"%0.3lf, %0.3lf!\", \n", tmp_cx, tmp_cy);
+            cout << "x = " << tmp_cx << ", y = " << tmp_cy << endl;
+            sprintf_s(str, "\t\tpos=\"%0.5lf, %0.5lf!\", \n", tmp_cx, tmp_cy);
             ofs << str;
             sprintf_s(str, "\t\tlabel=\"%d (%d)", s_abs, sw.get_hsize());
             ofs << str;

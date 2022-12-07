@@ -86,39 +86,69 @@ Edge sel_edge( int node_no, Graph& graph, mt19937& mt ) {
     return ans;
 }
 
-//Graph gからEdgeをぬきだしたリストを生成( 同スイッチからのホスト・ループ辺は1つまで)
-vector<Edge> makeEdgeList(Graph& g){
+//Graph gからEdgeをぬきだしたリストを生成(すべての辺を抜き出す)
+vector<Edge> makeEdgeList_normal(Graph& g){
     vector<Edge> edges;
-    const int hosts_limit = 1;
-    const int loops_limit = 1;
 
     for ( int i = 0; i < g.getSum_g(); ++i ) {
-        GraphPart& gp = g.getPart(G_no(i));
-        for ( Switch sw : gp.get_switchs() ) {
-            int h = 0; int loop = 0;
+        const GraphPart& gp = g.getPart(G_no(i));
+        int ssize = gp.get_ssize();
+        for ( int j = 0; j < ssize; ++j ) {
+            const Switch& sw = gp.get_switch(Node_no(j));
            for ( Edge edge : sw.getEdges() ) {
             if ( edge.getStatus() == Edge::edgeStatus::LOCKED ) continue;
             Edge::edgeType type = edge.getType();
-            if ( type == Edge::edgeType::HOST && h < hosts_limit ) {
+            if ( type == Edge::edgeType::HOST ) {
                 edges.push_back(edge);
-                edges.push_back(edge); ++h;
                 continue;
             }
-            if ( type == Edge::edgeType::LOOP && loop < loops_limit ) {
-                edges.push_back(edge);
-                edges.push_back(edge); ++loop;
+            if ( type == Edge::edgeType::LOOP ) {
+                edges.push_back(edge);                 
                 continue;
             }
+            if ( edge.getNode().getNo() <= j ) continue;
             edges.push_back(edge);
            } 
         }
     }
     return edges;
 }
+
+//Graph gからEdgeをぬきだしたリストを生成( 同スイッチからのホスト・ループ辺は1つまで)
+vector<Edge> makeEdgeList_hl(Graph& g){
+    vector<Edge> edges;
+    const int hosts_limit = 1;
+    const int loops_limit = 1;
+
+    for ( int i = 0; i < g.getSum_g(); ++i ) {
+        const GraphPart& gp = g.getPart(G_no(i));
+        int ssize = gp.get_ssize();
+        for ( int j = 0; j < ssize; ++j ) {
+            const Switch& sw = gp.get_switch(Node_no(j));
+            int h = 0; int loop = 0;
+           for ( Edge edge : sw.getEdges() ) {
+            if ( edge.getStatus() == Edge::edgeStatus::LOCKED ) continue;
+            Edge::edgeType type = edge.getType();
+            if ( type == Edge::edgeType::HOST && h < hosts_limit ) {
+                edges.push_back(edge); ++h;
+                continue;
+            }
+            if ( type == Edge::edgeType::LOOP && loop < loops_limit ) {
+                edges.push_back(edge); ++loop;
+                continue;
+            }
+            if ( edge.getNode().getNo() <= j ) continue;
+            edges.push_back(edge);
+           } 
+        }
+    }
+    return edges;
+}
+
 //種数は1前提
 //各エッジについて均等 O(nr)
-pair<Edge, Edge> select_edges3(Graph& graph, mt19937& mt) {
-    vector<Edge> edges = makeEdgeList(graph);
+pair<Edge, Edge> select_edges3(Graph& graph, mt19937& mt, vector<Edge>(*makeEdge)(Graph& g)) {
+    vector<Edge> edges = makeEdge(graph);
     uniform_int_distribution<int> dist_edge(0, edges.size()-1);
 
     const Edge& e1 = edges[dist_edge(mt)];
@@ -144,6 +174,14 @@ pair<Edge, Edge> select_edges3(Graph& graph, mt19937& mt) {
 
         return make_pair(e1, e2);
     }
+}
+
+pair<Edge, Edge> select_edges_noraml(Graph& graph, mt19937& mt) {
+    return select_edges3(graph, mt, makeEdgeList_normal);
+}
+
+pair<Edge, Edge> select_edges_hl(Graph& graph, mt19937& mt) {
+    return select_edges3(graph, mt, makeEdgeList_hl);
 }
 
 //グラフ上の2辺を選ぶ(Host辺やloop辺を考慮)

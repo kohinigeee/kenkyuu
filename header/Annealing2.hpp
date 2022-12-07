@@ -102,7 +102,7 @@ Graph annealingWithMDST ( int n, Graph& graph, Params params, pair<Edge,Edge> (*
     for ( int i = 0; i <= n; ++i ) {
         params.set("seed", mt());
 
-        Graph tmp = annealing(g, params, select_edges3); 
+        Graph tmp = annealing(g, params, select); 
         graph_info_t tmp_info = tmp.sumD();
 
         double haspl = tmp.calcHaspl(tmp_info["sumd"]);
@@ -145,7 +145,6 @@ void annealing_log_on_all() {
     for ( int i = 0; i < annealing_logs.size(); ++i ) annealing_logs[i] = true;
 }
     
-
 void annealing_log_off_all() {
     for ( int i = 0; i < annealing_logs.size(); ++i ) annealing_logs[i] = false;
 }

@@ -1,3 +1,6 @@
+#ifndef INCLUDE_DEVIDEANNEALING_HPP
+#define INCLDUE_DEVIDEANNEALING_HPP
+#include<iostream>
 #include<iostream>
 #include<vector>
 #include<cmath>
@@ -6,14 +9,14 @@
 #include<utility>
 
 
-#include "./header/Debug.hpp"
-#include "./header/functions.hpp"
-#include "./header/Nodes.hpp"
-#include "./header/Edge.hpp"
-#include "./header/Graph.hpp"
-#include "./header/GraphPart.hpp"
-#include "./header/Annealing.hpp"
-#include "./header/Annealing2.hpp"
+#include "Debug.hpp"
+#include "functions.hpp"
+#include "Nodes.hpp"
+#include "Edge.hpp"
+#include "Graph.hpp"
+#include "GraphPart.hpp"
+#include "Annealing.hpp"
+#include "Annealing2.hpp"
 
 using namespace std;
 using ll = long long;
@@ -102,7 +105,6 @@ Graph reconstruct(const vector<GraphPart>& parts, Graph& upper, vector<int>& por
     vector<int> ports2 = ports;
 
     //free Switch用のGraphPart
-    cout << "start reconstruct" << endl;
     for ( int i = 0; i < frees; ++i ) {
         GraphPart gp(1, 0, r, G_no(parts.size()+i));
         for ( int j = 0; j < gp.get_ssize(); ++j ) {
@@ -118,9 +120,7 @@ Graph reconstruct(const vector<GraphPart>& parts, Graph& upper, vector<int>& por
     Graph graph = Graph::makeFromParts(r, tmp);
     vector<vector<Edge>> edges(tmp.size());
 
-    graph.print("Recontstuct");
-
-    cout << "reconstct:: collecting edges" << endl;
+    // cout << "reconstct:: collecting edges" << endl;
     vector<int> cnt(tmp.size(), 0);
     for ( int i = 0; i < ports2.size(); ++i ) {
         for ( const Switch& sw : graph.getPart(G_no(i)).get_switchs() ) {
@@ -132,7 +132,7 @@ Graph reconstruct(const vector<GraphPart>& parts, Graph& upper, vector<int>& por
         }
     }
 
-    cout << "reconstruct:: constructing graph" << endl;
+    // cout << "reconstruct:: constructing graph" << endl;
     //freeスイッチが0個の場合
     GraphPart& gp = upper.getPart(G_no(0));
     for ( int i = 0; i < gp.get_ssize(); ++i  ) {
@@ -142,8 +142,8 @@ Graph reconstruct(const vector<GraphPart>& parts, Graph& upper, vector<int>& por
             int node2 = e.getNode().getNo();
             if ( i >= node2 ) continue;
             
-            cout << "node = " << i << endl;
-            e.print("Recontstuct");
+            // cout << "node = " << i << endl;
+            // e.print("Recontstuct");
             Edge e1 = edges[i][cnt[i]];
             Edge e2 = edges[node2][cnt[node2]];
 
@@ -154,26 +154,36 @@ Graph reconstruct(const vector<GraphPart>& parts, Graph& upper, vector<int>& por
             cnt[i]++; cnt[node2]++;
         }
     }
-    cout << "finishd" << endl;
+    // cout << "finishd" << endl;
     return graph;
 }
 
-Graph divideAnnealing(int groups, int r, vector<pair<int,int>>& values, vector<int>& ports, int frees = 0) {
+//分割アニーリングを実行
+//@params : paramater
+//@groups : 分割するグループの数
+//@values : 各グループのスイッチ数とホストの振り分け ( first:スイッチ数, second:ホスト数)
+//@ports : 各グループが上位グラフ用に所持しているポートの数
+//@frees : 上位グラフに利用されるスイッチの数
+Graph divideAnnealing(Params params, int groups, int r, vector<pair<int,int>>& values, vector<int>& ports, int frees = 0) {
     vector<GraphPart> gps;
+    mt19937 mt;
+    mt.seed(params.get("seed"));
 
     for ( int i = 0; i < groups; ++i ) {
+        Graph::set_seed(mt());
         Graph graph = Graph::make3(values[i].first, values[i].second, r, 1, ports[i]);
-        Params params = Params();
+        Params tmp_params = params;
+        params.set("seed", mt());
 
-        Graph best = annealing(graph, params, select_edges3);
+        Graph best = annealing(graph, params, select_edges_noraml);
         gps.push_back(best.getPart(G_no(0)));
     }
     Graph upper = makeUpperGraph(ports, r, frees);
-    Params param = Params();
 
-    cout << "start upper annealing" << endl;
-    Graph best = annealing(upper, param, select_edges3);
-    Graph::toDot("graph1.dot", best);
+    Params upper_parmas = params;
+    params.set("seed", mt());
+    // cout << "start upper annealing" << endl;
+    Graph best = annealing(upper, params, select_edges_noraml);
 
     Graph ans = reconstruct(gps, best, ports, r, frees);
     ans = ans.integrate();
@@ -185,35 +195,25 @@ Graph divideAnnealing(int groups, int r, vector<pair<int,int>>& values, vector<i
 
     return ans;
 }
-int main()
-{
-    const int s = 28, h = 32, r = 4, g = 1;
+
+//分割アニーリング
+// @free: 上位用グラフのスイッチの個数
+Graph divideAnnealing( Params& params, const int s, const int h, const int r, int free=0 ) {
+    
     int groups = int(sqrt(s)); //グループの数
     if ( groups*groups < s ) ++groups;
     vector<pair<int,int>> values;
     vector<int> ports;
 
-    cout << "groups = " << groups << endl;
     values = vector<pair<int,int>>(groups, make_pair(s/groups, h/groups));
-    ports = vector<int>(groups, 3);
+    ports = vector<int>(groups, r-1);
     vector<GraphPart> gps;
 
     for ( int i = 0; i < s%groups; ++i ) values[i].first += 1;
     for ( int i = 0; i < h%groups; ++i ) values[i].second += 1;
 
-    Params params = Params();
-    try {
-        Graph graph = divideAnnealing(groups, r, values, ports, 2);
-        Graph::toDot("graph2.dot", graph, 8);
+    Graph ans = divideAnnealing(params, groups, r, values, ports, free);
 
-        graph.print("Integrated");  
-        if ( graph.isLinking() ) cout << "Linking Graph" << endl;
-        else cout << "Not Linking Graph" << endl;
-        cout << "finished annealing" << endl;
-
-    } catch ( IregalManuplateException e ) {
-        cout << e.getMesage() << endl;
-    } catch ( IregalValueException e ) {
-        cout << e.getMesage() << endl;
-    }
+    return ans;
 }
+#endif

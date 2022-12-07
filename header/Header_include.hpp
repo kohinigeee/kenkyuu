@@ -11,5 +11,7 @@
 #include "GraphPart.hpp"
 #include "MDST.hpp"
 #include "Nodes.hpp"
+#include "DivideAnnealing.hpp"
+#include "Result.hpp"
 
 #endif
