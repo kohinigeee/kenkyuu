@@ -22,6 +22,9 @@ class Params {
         params["minT"] = 100;
         params["N"] = 100;
         params["seed"] = 1;
+        params["s"] = 0;
+        params["h"] = 0;
+        params["r"] = 0;
     } 
 
     Params(vector<string>& vec ) : Params() {

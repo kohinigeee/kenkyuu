@@ -178,12 +178,19 @@ Graph divideAnnealing(Params params, int groups, int r, vector<pair<int,int>>& v
         Graph best = annealing(graph, params, select_edges_noraml);
         gps.push_back(best.getPart(G_no(0)));
     }
+
+    Graph tmp = Graph::makeFromParts(r, gps);
+    tmp.integrate();
+    tmp.toDot("graph1.dot", tmp, 5.0);
+
     Graph upper = makeUpperGraph(ports, r, frees);
 
     Params upper_parmas = params;
     params.set("seed", mt());
     // cout << "start upper annealing" << endl;
     Graph best = annealing(upper, params, select_edges_noraml);
+
+    best.toDot("graph2.dot", best, 4.0);
 
     Graph ans = reconstruct(gps, best, ports, r, frees);
     ans = ans.integrate();
