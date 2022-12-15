@@ -17,22 +17,23 @@ int main(int argc, char** args)
 
     Params param = Params(arg);
     int seed = param.get("seed");
-    double minTa = 0.1;
-    double maxTa = 10.0;
+    // double minTa = 0.1;
+    // double maxTa = 10.0;
 
     mt19937 seed_gen;
     seed_gen.seed(seed);
 
-    param.set("minT", param.get("N")*minTa);
-    param.set("maxT", param.get("N")*maxTa);
+    param.set("minT", 6000);
+    param.set("maxT", 7000); 
     
-    const int s = 44;
-    const int h = 432;
-    const int r = 12;
     const int n = 50;
-    const int range = 20;
+    const int range = 100;
+    const int s = param.get("s");
+    const int h = param.get("h");
+    const int r = param.get("r");
 
-    string fname = "./python/results/results_mdst_4.txt";
+    string fn = "results_mdst_5.txt";
+    string fname = "./python/results/"+fn;
 
     vector<int> s_values;
     vector<Results> results1, results2, results3;

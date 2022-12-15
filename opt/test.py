@@ -21,8 +21,13 @@ def objective(trial):
     score = float(lis[0])
     return score
 
-study = optuna.create_study()
-study.optimize(objective, n_trials=100)
 
-print(study.best_params)
-print(study.best_value)
+def fcunt():
+    print("seed = " + str(param["seed"]))
+
+param = dict()
+param["seed"] =1234
+param[2313] = 3242
+
+for key, value in param.items():
+    print(key, value)

@@ -87,6 +87,45 @@ Graph annealing(Graph& graph, Params& params, pair<Edge,Edge> (*select)(Graph&, 
         if ( annealing_log ) cout << "Don't move" << endl;
         graph.back();
     }
+    
+
+    const int lim = N*0.2;
+    int cnt = 0;
+    prev_info = graph.sumD();
+    double prev_haspl = graph.calcHaspl(prev_info["sumd"]);
+    
+    while(lim < cnt ) {
+        pair<Edge,Edge> edges = select(graph, mt);
+        edges = bias(graph, edges, mt);
+        graph.simple_swing(edges.first, edges.second);
+
+        if ( !graph.isLinking() ) {
+            if ( annealing_log ) cout << "Not linking" << endl;
+            graph.back();
+            ++cnt;
+            continue;
+        }
+
+        graph_info_t g_info = graph.sumD();
+        double haspl = graph.calcHaspl(g_info["sumd"]); 
+        int diam = g_info["diam"];
+
+        if ( eval_graph(make_pair(diam, haspl), make_pair(prev_info["diam"], prev_haspl) ) ) {
+            prev_haspl = haspl;
+            prev_info = g_info;
+            cnt = 0;
+        } else {
+            graph.back();
+            ++cnt;
+        }
+    }
+
+    double best_haspl = bestgraph.calcHaspl(best_info["sumd"]);
+    if ( eval_graph(make_pair(prev_info["diam"], prev_haspl), make_pair(best_info["diam"], best_haspl) ) ) {
+        best_info = prev_info;
+        bestgraph = graph;
+    }
+
     return bestgraph;
 }
 

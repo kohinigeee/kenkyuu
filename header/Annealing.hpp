@@ -269,6 +269,13 @@ double eval1(Graph& newGraph, graph_info_t& newInfo,  graph_info_t& prevInfo, do
     return prob;
 }
 
+//graph1 が graph2　よりbetterか判定
+//first: diam, second: haspl
+bool eval_graph(const pair<long long, double>& graph1, const pair<long long, double>& graph2 ) {
+    if ( graph1.first == graph2.second ) return graph1.second < graph2.second;
+    return graph1.first < graph2.first;
+}
+
 pair<Edge,Edge> bias(Graph& graph, pair<Edge,Edge>& p, mt19937& mt ) {
     uniform_real_distribution<double> dis(0, 1);
     pair<Edge, Edge> ans;
