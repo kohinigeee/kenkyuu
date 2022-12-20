@@ -14,30 +14,34 @@ using namespace std;
 int main(int argc, char** args)
 {
     debug_off();
-    annealing_log_off(0);
+    annealing_log_off_all();
 
     vector<string> arg;
     for ( int i = 1; i < argc; ++i ) arg.push_back(string(args[i]));
 
     Params params = Params(arg);
-    const int s = 28, h = 32, r = 4, g = 1;
+    const int s = 32, h = 32, r = 4, g = 1;
 
 
     try { 
-      Graph::set_seed(params.get("seed"));
-      Graph graph = Graph::makeRandom(s, h, r); 
+        mt19937 seed_gen;
+        seed_gen.seed(params.get("seed"));
 
-      Graph::toDot("graph1.dot", graph, 5);
-      graph.print();
+        for ( int i = 0; i < 100; ++i ) {
+            Graph::set_seed(seed_gen());
+            params.set("seed", seed_gen());
+            Graph graph = Graph::make(s, h, r, 1);
 
-      Graph best = annealing(graph, params, select_edges3);
-      graph_info_t info =best.sumD();
 
-      cout << "\n" << "results" << endl;
-      params.print();
-      cout << "diam = " << info["diam"] << endl;
-      cout << "haspl = " << best.calcHaspl(info["sumd"]); 
+            Graph best = annealing_kick(graph, params, select_edges_noraml);
+            graph_info_t info =best.sumD();
 
+            cout << "\n" << "results" << endl;
+            params.print();
+            cout << "diam = " << info["diam"] << endl;
+            cout << "haspl = " << best.calcHaspl(info["sumd"]); 
+            cout << endl;
+        }
     } catch ( IregalManuplateException e ) {
         cout << e.getMesage() << endl;
     } catch ( IregalValueException e ) {
