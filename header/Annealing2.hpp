@@ -7,11 +7,13 @@
 #include <map>
 #include <string>
 #include <algorithm>
+#include "Edge.hpp"
 #include "Graph.hpp"
 #include "Annealing.hpp"
 #include "MDST.hpp"
 
 using namespace std;
+using select_func =pair<Edge,Edge>(*)(Graph&, mt19937&); 
 
 vector<bool> annealing_logs(5, true);
 

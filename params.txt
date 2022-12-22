@@ -6,3 +6,8 @@ seed: 50
 [Results]
 min_diam = 6
 min_hasple = 5.40726
+
+
+method: hillcimb
+s = 32, h = 32, r = 4
+n = 5000, limn = n*0.2, seed = 10

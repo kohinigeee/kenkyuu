@@ -14,32 +14,20 @@ int main(int argc, char** args )
     debug_off();
     annealing_log_off_all();
     annealing_log_on(0);
+    
+    const int s = 46, h = 80, r = 6;
 
-    const int s = 32, h = 32, r = 4, g = 1;
-    int groups = int(sqrt(s)); //グループの数
-    if ( groups*groups < s ) ++groups;
-    vector<pair<int,int>> values;
-    vector<int> ports;
-
-    cout << "groups = " << groups << endl;
-    values = vector<pair<int,int>>(groups, make_pair(s/groups, h/groups));
-    ports = vector<int>(groups, 3);
-    vector<GraphPart> gps;
-
-    for ( int i = 0; i < s%groups; ++i ) values[i].first += 1;
-    for ( int i = 0; i < h%groups; ++i ) values[i].second += 1;
 
     try {
-        Params parmas = Params();
-        Graph graph1 = Graph::make(5500, 10000, 8, 1);
-        mt19937 mt;
-        Graph best = annealing(graph1, parmas, select_edges_noraml);
-        best.toDot("graph2.dot", best);
+        Graph graph = Graph::make(s, h, r, 1);
+        Graph best = hillClimbing_mdstkick(graph, 20000, 10, select_edges_noraml);
 
-        graph_info_t info = best.sumD();
-        double haspl = best.calcHaspl(info["sumd"]);
-        cout << "haspl = " << haspl << endl;
-        cout << "diam = " << info["diam"] << endl;
+        graph_info_t best_info = best.sumD();
+        double haspl = best.calcHaspl(best_info["sumd"]);
+
+        cout << endl;
+        cout << "diam : " << best_info["diam"] << endl;
+        cout << "haspl: " << haspl << endl;
     } catch ( IregalManuplateException e ) {
         cout << e.getMesage() << endl;
     } catch ( IregalValueException e ) {

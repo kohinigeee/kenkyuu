@@ -272,7 +272,7 @@ double eval1(Graph& newGraph, graph_info_t& newInfo,  graph_info_t& prevInfo, do
 //graph1 が graph2　よりbetterか判定
 //first: diam, second: haspl
 bool eval_graph(const pair<long long, double>& graph1, const pair<long long, double>& graph2 ) {
-    if ( graph1.first == graph2.second ) return graph1.second < graph2.second;
+    if ( graph1.first == graph2.first ) return graph1.second < graph2.second;
     return graph1.first < graph2.first;
 }
 

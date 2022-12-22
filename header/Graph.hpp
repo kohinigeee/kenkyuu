@@ -369,6 +369,7 @@ Graph Graph::make3(int s, int h, int r, int g, int reserved_r) {
     }
     return graph;
 }
+
 Graph Graph::make2(int s, int h, int r, int g, int h_level ) {
     Graph graph(s, h, r, g);
 

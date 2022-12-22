@@ -1,3 +1,6 @@
+#ifndef INCLUDE_RATIONAL_HPP
+#define INCLUDE_RATIONAL_HPP
+
 #include<iostream>
 #include<utility>
 
@@ -73,3 +76,5 @@ ostream& operator<<(ostream& os, const Rational& r ) {
     os << r.numera << "/" << r.denomi;
     return os;
 }
+
+#endif
