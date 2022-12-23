@@ -140,7 +140,7 @@ class Graph {
     void linkLoops(bool);
 
     //グラフ上のホスト辺以外を自己ループにする
-    void loopInit();
+    void loopInit(bool isIncludeLocked);
 
     //すべてのGraphPartを統合したグラフに変形する
     Graph integrate();
@@ -262,7 +262,7 @@ int Graph::deleteHost(const G_no& g_no, const Node_no& node_no) { //消すホス
     return 1;
 }
 
-//Graph上のUNROCKループ辺をあつめる
+//Graph上のループ辺をあつめる
 vector<vector<Edge>> Graph::collectLoops(bool isLockedOk = false ) {
     vector<vector<Edge>> loops;
     for ( int i = 0; i < s; ++i ) {
@@ -351,12 +351,12 @@ Graph Graph::make3(int s, int h, int r, int g, int reserved_r) {
         throw IregalValueException(msg);
     }
     int cnt = 0;
-    for ( auto edges: loops ) {
+    for ( auto edges: loops2 ) {
         for ( auto edge : edges ) {
+            if ( cnt >= reserved_r ) break;
             edge.setStatus(Edge::edgeStatus::LOCKED);
             graph.getSwitch(edge.getG(), edge.getNode()).setEdge(edge.getEdge(), edge);
             ++cnt;
-            if ( cnt >= reserved_r ) break;
         }
         if ( cnt >= reserved_r ) break;
     }
@@ -776,7 +776,7 @@ Graph Graph::integrate() {
 }
 
 //ホスト辺以外の辺を全て自己ループにする
-void Graph::loopInit() {
+void Graph::loopInit( bool isIncludeLocked = true ) {
     for ( int i = 0; i < getSum_g(); ++i ) {
         GraphPart& gp = getPart(G_no(i));
         for ( int j = 0; j < gp.get_ssize(); ++j ) {
@@ -784,6 +784,9 @@ void Graph::loopInit() {
             for ( int k = 0; k < sw.get_r(); k++ ) {
                 Edge e = sw.getEdge(Edge_no(k));
                 if ( e.getType() == Edge::edgeType::HOST ) continue;
+                if ( isIncludeLocked == false && e.getType() == Edge::edgeType::LOOP && e.getStatus() == Edge::edgeStatus::LOCKED ) {
+                    continue;
+                }
                 e.setType(Edge::edgeType::LOOP);
                 e.setG(gp.get_gno());
                 e.setNode(Node_no(j));

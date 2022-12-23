@@ -129,6 +129,7 @@ Graph makeMDTgraph(Graph& graph ) {
     mdst_tree_t tree = mdst(graph);
 
     Graph graphT = graph;
+    //LOCKされたループ辺はそのままにするのを許す挙動をloopinitに追加
     graphT.loopInit();
 
     for ( auto p : tree ) {

@@ -8,6 +8,8 @@
 
 using namespace std;
 
+using divideHillclimb_func = Graph(*)(Graph&, const int n, const int seed, select_func, const int reserved_port );
+
 //分割山登り法
 //@dinfo: 分割時の各グループの情報
 //@n    : 遷移回数
@@ -15,7 +17,7 @@ using namespace std;
 //@select: エッジの選択関数
 //@hillclimb: 山登りの方法(キックの仕方)
 
-Graph divideHillClimb( const divideInfo& dinfo, const int n, const int seed, select_func select, hillclimb_func hillclimb, int frees = 0 ) {
+Graph divideHillClimb( const divideInfo& dinfo, const int n, const int seed, select_func select, divideHillclimb_func hillclimb, int frees = 0 ) {
     vector<GraphPart> gps;
     mt19937 mt;
     const int r = dinfo.r;
@@ -29,18 +31,21 @@ Graph divideHillClimb( const divideInfo& dinfo, const int n, const int seed, sel
         const int r_under = dinfo.ports[i];
 
         Graph graph = Graph::make3(s_under, h_under, dinfo.r, 1, r_under);
-        Graph best = hillclimb(graph, n, mt(), select);
-        gps.push_back(best.getPart(G_no(0)));
-    }
+        //LOG
+        graph.print("Under_" + to_string(i));
 
-    for ( int i = 0; i < dinfo.get_size(); ++i ) {
-        gps[i].print("Gps_" + to_string(i));
+
+        Graph best = hillclimb(graph, n, mt(), select, r_under);
+        gps.push_back(best.getPart(G_no(0)));
+
+        //Log
+       gps[i].print("Under_" + to_string(i));
     }
     
     Graph upper = makeUpperGraph(dinfo.ports, r, frees);
-    Graph best = hillclimb(upper, n, mt(), select);
+    Graph best = hillclimb(upper, n, mt(), select, 0);
 
-    best.print();
+    // best.print();
     cout << "finished makeUpperGraph" << endl;
 
     Graph ans = reconstruct(gps, best, dinfo.ports, r, frees);

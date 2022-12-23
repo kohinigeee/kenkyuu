@@ -22,12 +22,13 @@ class divideInfo {
         cout << "[divideInfo]" << endl;
         cout << "s = " << s << ", h = " << h << ", r = " << r << endl;
 
-        for ( auto v : nodes ) cout << v << " "; cout << endl;
-        for ( auto v : hosts) cout << v << " "; cout << endl;
-        for ( auto v : ports ) cout << v << " "; cout << endl;
+        cout << "[nodes] "; for ( auto v : nodes ) cout << v << " "; cout << endl;
+        cout << "[hosts] "; for ( auto v : hosts) cout << v << " "; cout << endl;
+        cout << "[ports] "; for ( auto v : ports ) cout << v << " "; cout << endl;
     }
     divideInfo static makeDivide(const int s, const int h, const int r );
     divideInfo static makeDivide_normal( const int s, const int h, const int r);
+    divideInfo static makeDivide_ports( const int s, const int h, const int r ); 
     int get_size() const { return nodes.size(); }
 };
 
@@ -75,6 +76,40 @@ divideInfo divideInfo::makeDivide ( const int s, const int h, const int r ) {
     }
 
     ports = vector<int>(groups, r-1);
+
+    for ( int i = 0; i < groups; ++i ) {
+        if ( nodes[i]*r <= hosts[i]+ports[i] ) {
+            cout << "[Error] divideInfo::makeDivide made invalid information" << endl;
+            exit(1);
+        }
+    }
+
+    return divideInfo(s, h, r, nodes, hosts, ports);
+}
+
+//swithces: √s
+//hosts: 占有率 min-max sub
+//ports: (nr-n)をt:1-tの割合で振り分け( t : グループで使用するポートの割合) 
+divideInfo divideInfo::makeDivide_ports( const int s, const int h, const int r ) {
+    vector<int> nodes, hosts, ports;
+    double t = 0.5; 
+
+    int groups = sqrt(s);
+    if ( groups*groups < s ) ++groups;
+
+    nodes = vector<int>(groups, s/groups);
+    for ( int i = 0; i < s%groups; ++i ) nodes[i] += 1;
+
+    try {
+        hosts = divideHosts(r, h, nodes);
+    } catch ( IregalValueException e ) {
+        exit(1);
+    }
+
+    ports = vector<int>(groups, -1);
+    for ( int i = 0; i < groups; ++i ) {
+        ports[i] = (nodes[i]*r-hosts[i]-nodes[i])*t;
+    }
 
     for ( int i = 0; i < groups; ++i ) {
         if ( nodes[i]*r <= hosts[i]+ports[i] ) {

@@ -173,11 +173,18 @@ Graph divideAnnealing(Params params, int groups, int r, const vector<pair<int,in
     for ( int i = 0; i < groups; ++i ) {
         Graph::set_seed(mt());
         Graph graph = Graph::make3(values[i].first, values[i].second, r, 1, ports[i]);
+
+        //LOG
+        graph.print("Under_" + to_string(i));
+        
         Params tmp_params = params;
         params.set("seed", mt());
 
         Graph best = annealing(graph, params, select_edges_noraml);
         gps.push_back(best.getPart(G_no(0)));
+
+        //LOG
+        // gps[i].print("Under_" + to_string(i));
     }
 
     // Graph tmp = Graph::makeFromParts(r, gps);
