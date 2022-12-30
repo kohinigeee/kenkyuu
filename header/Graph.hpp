@@ -3,6 +3,8 @@
 
 #include"GraphPart.hpp"
 #include"Exeception.hpp"
+#include"GraphResult.hpp"
+
 #include<vector>
 #include<iostream>
 #include<fstream>
@@ -71,6 +73,7 @@ class Graph {
     inline int getSum_h() const{ return h; }
     inline int getSum_g() const { return g; }
     inline int get_r()  const { return r; }
+    inline int get_us() const { return us; }
 
     //指定のエッジを取り出す( type:ノードタイプ g_no:種番号 node_no:相対ノード番号 edge_no:エッジ番号)
     inline Edge getEdge(Edge::edgeType type, G_no g_no, Node_no node_no, Edge_no edge_no ) {
@@ -111,10 +114,17 @@ class Graph {
     //対象グラフに対するswing関数 
     void swing(const Edge& a1, const Edge& b1);
 
-    vector<long long> bfs( int node_no, const long long empv );
+    BfsResult bfs( int node_no, const long long empv );
+
+    //任意の頂点ペアのパスを取り出す
+    vector<pair<Edge,Edge>> takePath( int st, int end );
 
     //グラフの距離行列を求める
-    vector<vector<long long>> calcBFS( const long long INF );
+    GraphResult calcBFS( const long long );
+
+    //グラフのGraphInfoを求める
+    GraphInfo calcInfo();
+    GraphInfo calcInfo(GraphResult& result);
 
     //グラフのSSPL(Sum of Shortest Path Length )を求める
     graph_info_t sumD();
@@ -640,8 +650,11 @@ void Graph::swing(const Edge& a, const Edge& b) {
 }
 
 //すべてのGraphPartのスイッチ数が均等なこと前提
-vector<long long> Graph::bfs( int node_no , const long long empv = -1 ) {
+BfsResult Graph::bfs( int node_no , const long long empv = -1 ) {
     vector<long long> d(s, empv);
+    vector<pair<Edge,Edge>> path(s);
+    // index i :  first i->pのエッジ p(parant)
+    //         : second p->iのエッジ
     queue<int> que;
 
     d[node_no] = 0; 
@@ -654,28 +667,64 @@ vector<long long> Graph::bfs( int node_no , const long long empv = -1 ) {
         const vector<Edge>& edges = getSwitch(G_no(gno), Node_no(nno)).getEdges();
         for ( const Edge& e : edges ) {
            if ( e.getType() != Edge::edgeType::SWITCH ) continue;
+
            int to_g = e.getG().getNo(), to_node = e.getNode().getNo();
            int to_sno = to_g*us+to_node;
            if ( d[to_sno] == empv ) {
             d[to_sno] = d[topno]+1;
             que.push(to_sno);
-           } 
+
+            path[to_sno] = make_pair(getEdge(e),e);
+           }
         }
     }
-    return d;
+    return BfsResult(node_no, d, path);
 }
 
-vector<vector<long long>> Graph::calcBFS( const long long empv = -1) {
+//ある頂点ペアの最短パスを抜き出す
+//[注意]すべてのGraphPartのスイッチ数が均等なこと前提
+vector<pair<Edge,Edge>> Graph::takePath( int st, int end ) {
+    if ( st < 0 || st >= s ) {
+        cout << "[Error] Graph::takePath st is invalid value" << endl;
+        exit(1);
+    }
+    if ( end < 0 || end >= s ) {
+        cout << "[Error] Graph::takePath st is invalied value" << endl;
+        exit(1);
+    }
+
+    BfsResult restult = bfs(end);
+    vector<pair<Edge,Edge>> p = restult.get_path();
+    vector<pair<Edge,Edge>> ans;
+    int node_no = st;
+
+    while( node_no != end ) {
+        ans.push_back(p[node_no]);
+
+        Edge to_p = p[node_no].first; 
+        int to_g = to_p.getG().getNo();
+        int to_s = to_p.getNode().getNo();
+        int to_node = to_g*us+to_s;
+
+        node_no = to_node;
+    }
+    return ans;
+}
+
+GraphResult Graph::calcBFS( const long long empv = -1) {
+    //距離行列
     vector<vector<long long>> d(g*s, vector<long long>(g*s, empv));
+    //各辺の重要度
+    map<pair<Edge,Edge>, long long> edge_scores;
 
     for ( int i = 0; i < s; ++i ) d[i][i] = 0;
-
     for ( int i = 0; i < s; ++i ) {
         int gno = i/us, node_no = i%us;
         queue<int> que;
 
         que.push(i);
         while(!que.empty()) {
+            //探索するスイッチの絶対番号
             int topno = que.front(); que.pop();
             int gno = topno/us, node_no = topno%us;
 
@@ -684,19 +733,72 @@ vector<vector<long long>> Graph::calcBFS( const long long empv = -1) {
                 if ( e.getType() != Edge::edgeType::SWITCH ) continue;
                 int to_g = e.getG().getNo(), to_node = e.getNode().getNo();
                 int to_sno = to_g*us+to_node;
+
                 if ( d[i][to_sno] == empv ) {
                     d[i][to_sno] = d[i][topno]+1;
                     que.push(to_sno);
+
+                    Edge edge2 = getEdge(e); 
+                    pair<Edge,Edge> pe = makeEdgePair(e, edge2);
+                    edge_scores[pe] += 1;
                 }
             }
         }
     }
+    GraphResult ans = GraphResult(d, edge_scores);
+    return ans;
+}
 
-    return d;
+GraphInfo Graph::calcInfo() {
+    GraphResult result = calcBFS();
+    return calcInfo(result);
+}
+
+GraphInfo Graph::calcInfo(GraphResult& result) {
+    vector<vector<long long>> d = result.getDmtx(); 
+    long long ans = 0; //ホスト間の最短距離の総和
+    long long sumd = 0; //スイッチ間の讃嘆距離の総和
+    long long diam = 0;
+    double haspl;
+    pair<long long, long long> e;
+    vector<pair<int,int>> diam_tanten_pairs;
+    
+    for ( int i = 0; i < s; ++i ) {
+        G_no g_no(i/us); Node_no node_no(i%us);
+        long long ih = getSwitch(g_no, node_no).get_hsize();
+
+        if ( ih == 0 ) continue;
+        if ( ih >= 2 ) { 
+            ans += ih*(ih+1);
+            if ( diam < 2 ) {
+                diam = 2;
+                e = make_pair(i, i);
+            }
+        }
+
+        for ( int j = i+1; j < s; ++j ) {
+            G_no to_gno(j/us); Node_no to_node(j%us);
+            long long toh = getSwitch(to_gno, to_node).get_hsize();
+            if ( toh == 0 ) continue;
+            ans += ih*toh*(d[i][j]+2);
+            if ( diam < d[i][j]+2 ) {
+                diam = d[i][j]+2;
+                e=make_pair(i, j);
+                diam_tanten_pairs.clear();
+            }
+            if ( diam == d[i][j]+2 ) {
+                diam_tanten_pairs.push_back(make_pair(i,j));
+            }
+        }
+    }
+
+    haspl = ans/(double(h*(h-1)/2));
+    return GraphInfo(result, ans,diam, haspl, e, diam_tanten_pairs);
 }
 
 graph_info_t Graph::sumD() {
-    vector<vector<long long>> d = calcBFS();
+    GraphResult result = calcBFS();
+    vector<vector<long long>> d = result.getDmtx(); 
     long long ans = 0; //ホスト間の最短距離の総和
     long long sumd = 0; //スイッチ間の讃嘆距離の総和
     long long diam = 0;
@@ -706,6 +808,7 @@ graph_info_t Graph::sumD() {
         G_no g_no(i/us); Node_no node_no(i%us);
         long long ih = getSwitch(g_no, node_no).get_hsize();
 
+        if ( ih == 0 ) continue;
         if ( ih >= 2 ) { 
             ans += ih*(ih+1);
             if ( diam < 2 ) {
@@ -713,6 +816,7 @@ graph_info_t Graph::sumD() {
                 e = make_pair(i, i);
             }
         }
+
         for ( int j = i+1; j < s; ++j ) {
             G_no to_gno(j/us); Node_no to_node(j%us);
             long long toh = getSwitch(to_gno, to_node).get_hsize();
@@ -845,8 +949,8 @@ bool Graph::isLinking() {
     vector<long long> d0(s);
     vector<long long> d1(s);
 
-    d0 = bfs(0, -1);
-    d1 = bfs(1, -1);
+    d0 = bfs(0, -1).get_d();
+    d1 = bfs(1, -1).get_d();
 
     for ( auto v : d0 ) if ( v == -1 ) return false;
     for ( auto v : d1 ) if ( v == -1 ) return false;

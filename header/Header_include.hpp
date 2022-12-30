@@ -16,5 +16,6 @@
 #include "DivideAnnealing.hpp"
 #include "HillClimb.hpp"
 #include "DivideHillClimb.hpp"
+#include "DirectHillclimb.hpp"
 
 #endif

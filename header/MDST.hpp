@@ -51,7 +51,7 @@ vector<pair<Edge,Edge>> mdst(Graph& graph) {
     }
 
     for ( int i = 0; i < graph.getSum_s(); ++i ) {
-        vector<long long> tmpd = graph.bfs(i);
+        vector<long long> tmpd = graph.bfs(i).get_d();
         d.push_back(tmpd);
     }
 

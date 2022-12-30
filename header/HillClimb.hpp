@@ -7,6 +7,31 @@
 
 using hillclimb_func = Graph(*)(Graph&, const int n, const int seed, select_func);
 
+long long countEdges(Graph& graph) {
+    long long ans = 0;
+    for ( int i = 0; i < graph.getSum_s(); ++i ) {
+        G_no g_no = G_no(i/graph.get_us());
+        Node_no node_no = Node_no(i%graph.get_us());
+
+        const Switch& sw = graph.getSwitch(g_no, node_no);
+        for ( const Edge& e : sw.getEdges() ) {
+            if ( e.getType() == Edge::edgeType::NONE ) continue;
+            if ( e.getStatus() == Edge::edgeStatus::LOCKED ) continue;
+
+            if ( e.getType() == Edge::edgeType::SWITCH ) {
+                int to_g = e.getG().getNo();
+                int to_node = e.getNode().getNo();
+
+                if ( to_g > g_no.getNo() ) ++ans;
+                if ( to_g == g_no.getNo() && to_node > node_no.getNo() ) ++ans;
+            } else {
+                ++ans;
+            }
+        } 
+    }
+    return ans;
+}
+
 Graph hillClimbing_normalkick(Graph& graph, const int n, const int seed,  pair<Edge,Edge>(*select)(Graph&, mt19937&) ) {
 
     const int limn = n*0.2;
