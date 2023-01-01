@@ -6,6 +6,7 @@
 #include<map>
 
 #include"Edge.hpp"
+#include"PathTree.hpp"
 
 using path_t = vector<pair<Edge,Edge>>;
 
@@ -18,12 +19,14 @@ pair<Edge,Edge> makeEdgePair(const Edge e1, const Edge e2 ) {
 class GraphResult{
     vector<vector<long long>> dmtx;
     map< pair<Edge,Edge>, long long > edge_scores;
+    vector<PathTree> trees;
 
     public: 
-    GraphResult( vector<vector<long long>>& dmtx, map< pair<Edge,Edge>, long long>& edge_scores ) : dmtx(dmtx), edge_scores(edge_scores) {}
+    GraphResult( vector<vector<long long>>& dmtx, map< pair<Edge,Edge>, long long>& edge_scores, vector<PathTree>& trees) : dmtx(dmtx), edge_scores(edge_scores), trees(trees) {}
     
     const vector<vector<long long>>& getDmtx() { return dmtx; }
     const map< pair<Edge,Edge>, long long >& getEdgeScores() { return edge_scores; }
+    const vector<PathTree>& getTrees() { return trees; }
 };
 
 class GraphInfo {
@@ -48,13 +51,17 @@ class BfsResult {
     int st; //bfsの始点の絶対番号
     vector<long long> d; //距離配列
     vector<pair<Edge,Edge>> path;
+    map<pair<Edge,Edge>, long long> edge_scores;
+    vector<TreeNode> tnodes;
 
     public:
-    BfsResult( int st, vector<long long>& d, vector<pair<Edge,Edge>>& path ) : st(st), d(d), path(path) {}
+    BfsResult( int st, vector<long long>& d, vector<pair<Edge,Edge>>& path, const vector<TreeNode>& tnodes, const map<pair<Edge,Edge>, long long>& edge_scores ) : st(st), d(d), path(path), tnodes(tnodes), edge_scores(edge_scores) {}
 
     int get_st() { return st; }
     vector<long long> get_d() { return d; }
     vector<pair<Edge,Edge>> get_path() { return path; }
+    const map<pair<Edge,Edge>, long long>& get_scores() { return edge_scores; }
+    const vector<TreeNode> get_tnodes() { return tnodes; }
 };
 
 //info1がinfo2より良いかを判定

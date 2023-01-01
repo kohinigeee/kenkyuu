@@ -4,6 +4,7 @@
 #include"GraphPart.hpp"
 #include"Exeception.hpp"
 #include"GraphResult.hpp"
+#include"PathTree.hpp"
 
 #include<vector>
 #include<iostream>
@@ -655,10 +656,17 @@ BfsResult Graph::bfs( int node_no , const long long empv = -1 ) {
     vector<pair<Edge,Edge>> path(s);
     // index i :  first i->pのエッジ p(parant)
     //         : second p->iのエッジ
+    vector<TreeNode> tnodes;
+    map<pair<Edge,Edge>, long long> edge_scores;
+
     queue<int> que;
+    for ( int i = 0; i < getSum_s(); ++i ) {
+        tnodes.push_back(TreeNode(i, -1));
+    }
 
     d[node_no] = 0; 
     que.push(node_no);
+    tnodes[node_no].level = 0;
 
     while(!que.empty()) {
         int topno = que.front(); que.pop();
@@ -675,10 +683,19 @@ BfsResult Graph::bfs( int node_no , const long long empv = -1 ) {
             que.push(to_sno);
 
             path[to_sno] = make_pair(getEdge(e),e);
+            
+            edge_scores[makeEdgePair(e, getEdge(e))] += 1;
+            //PathTree用処理
+            tnodes[to_sno].level = d[to_sno];
+           }
+
+           if ( d[to_sno] == d[topno]+1 ) {
+            tnodes[topno].belows.push_back(e);
+            tnodes[to_sno].uppers.push_back(getEdge(e));
            }
         }
     }
-    return BfsResult(node_no, d, path);
+    return BfsResult(node_no, d, path, tnodes, edge_scores);
 }
 
 //ある頂点ペアの最短パスを抜き出す
@@ -711,43 +728,62 @@ vector<pair<Edge,Edge>> Graph::takePath( int st, int end ) {
     return ans;
 }
 
-GraphResult Graph::calcBFS( const long long empv = -1) {
-    //距離行列
-    vector<vector<long long>> d(g*s, vector<long long>(g*s, empv));
-    //各辺の重要度
+GraphResult Graph::calcBFS( const long long empv = -1 ) {
+    vector<vector<long long>> d;
     map<pair<Edge,Edge>, long long> edge_scores;
+    vector<PathTree> trees;
 
-    for ( int i = 0; i < s; ++i ) d[i][i] = 0;
     for ( int i = 0; i < s; ++i ) {
-        int gno = i/us, node_no = i%us;
-        queue<int> que;
+        BfsResult bresult = bfs(i, empv);
+        d.push_back(bresult.get_d());
 
-        que.push(i);
-        while(!que.empty()) {
-            //探索するスイッチの絶対番号
-            int topno = que.front(); que.pop();
-            int gno = topno/us, node_no = topno%us;
+        for ( auto p : bresult.get_scores() ) {
+            edge_scores[p.first] += p.second;
+        } 
 
-            const vector<Edge>& edges = getSwitch(G_no(gno), Node_no(node_no)).getEdges();
-            for ( const Edge& e : edges ) {
-                if ( e.getType() != Edge::edgeType::SWITCH ) continue;
-                int to_g = e.getG().getNo(), to_node = e.getNode().getNo();
-                int to_sno = to_g*us+to_node;
-
-                if ( d[i][to_sno] == empv ) {
-                    d[i][to_sno] = d[i][topno]+1;
-                    que.push(to_sno);
-
-                    Edge edge2 = getEdge(e); 
-                    pair<Edge,Edge> pe = makeEdgePair(e, edge2);
-                    edge_scores[pe] += 1;
-                }
-            }
-        }
+        trees.push_back(PathTree(i, bresult.get_tnodes()));
     }
-    GraphResult ans = GraphResult(d, edge_scores);
+    GraphResult ans = GraphResult(d, edge_scores, trees);
     return ans;
 }
+
+// GraphResult Graph::calcBFS( const long long empv = -1) {
+//     //距離行列
+    // vector<vector<long long>> d(g*s, vector<long long>(g*s, empv));
+//     //各辺の重要度
+//     map<pair<Edge,Edge>, long long> edge_scores;
+
+//     for ( int i = 0; i < s; ++i ) d[i][i] = 0;
+//     for ( int i = 0; i < s; ++i ) {
+//         int gno = i/us, node_no = i%us;
+//         queue<int> que;
+
+//         que.push(i);
+//         while(!que.empty()) {
+//             //探索するスイッチの絶対番号
+//             int topno = que.front(); que.pop();
+//             int gno = topno/us, node_no = topno%us;
+
+//             const vector<Edge>& edges = getSwitch(G_no(gno), Node_no(node_no)).getEdges();
+//             for ( const Edge& e : edges ) {
+//                 if ( e.getType() != Edge::edgeType::SWITCH ) continue;
+//                 int to_g = e.getG().getNo(), to_node = e.getNode().getNo();
+//                 int to_sno = to_g*us+to_node;
+
+//                 if ( d[i][to_sno] == empv ) {
+//                     d[i][to_sno] = d[i][topno]+1;
+//                     que.push(to_sno);
+
+//                     Edge edge2 = getEdge(e); 
+//                     pair<Edge,Edge> pe = makeEdgePair(e, edge2);
+//                     edge_scores[pe] += 1;
+//                 }
+//             }
+//         }
+//     }
+//     GraphResult ans = GraphResult(d, edge_scores);
+//     return ans;
+// }
 
 GraphInfo Graph::calcInfo() {
     GraphResult result = calcBFS();
