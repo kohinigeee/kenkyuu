@@ -26,7 +26,7 @@ class GraphResult{
     
     const vector<vector<long long>>& getDmtx() { return dmtx; }
     const map< pair<Edge,Edge>, long long >& getEdgeScores() { return edge_scores; }
-    const vector<PathTree>& getTrees() { return trees; }
+    vector<PathTree>& getTrees() { return trees; }
 };
 
 class GraphInfo {

@@ -16,6 +16,7 @@ class TreeNode {
     int level;
     vector<Edge> uppers;
     vector<Edge> belows;
+    vector<Edge> flats;
 
     TreeNode(int no, int level) : no(no), level(level) {}
     TreeNode() : TreeNode(-1, -1) {}
@@ -29,6 +30,8 @@ void TreeNode::print() const{
     for ( Edge e : uppers ) e.print();
     cout << "[belows]" << endl;
     for ( Edge e : belows ) e.print();
+    cout << "[flats]" << endl;
+    for ( Edge e: flats ) e.print();
 }
 
 class PathTree {
@@ -45,6 +48,9 @@ class PathTree {
     }
 
     int get_max_level() { return tree.size()-1; }
+    vector<TreeNode>& get_tnodes(long long level ) {
+        return tree[level];
+    }
 
     void print() const ;
 };

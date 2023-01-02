@@ -693,6 +693,9 @@ BfsResult Graph::bfs( int node_no , const long long empv = -1 ) {
             tnodes[topno].belows.push_back(e);
             tnodes[to_sno].uppers.push_back(getEdge(e));
            }
+           if ( d[to_sno] == d[topno] ) {
+            tnodes[topno].flats.push_back(e);
+           }
         }
     }
     return BfsResult(node_no, d, path, tnodes, edge_scores);
