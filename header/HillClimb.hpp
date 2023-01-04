@@ -29,7 +29,7 @@ long long countEdges(Graph& graph) {
             }
         } 
     }
-    return ans;
+    return ans*(ans-1)/2;
 }
 
 Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edge>(*select)(Graph&,mt19937&)) {
@@ -49,7 +49,11 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
         pair<Edge,Edge> pee = select(graph, mt);
         
         pair<Edge,Edge> tmp = makeEdgePair(pee.first, pee.second);
-        if ( calced.find(tmp) != calced.end() ) continue;
+        if ( calced.find(tmp) != calced.end() ) {
+            limcnt++;
+            continue;
+        }
+
         calced.insert(tmp);
 
         graph.simple_swing(pee.first, pee.second);

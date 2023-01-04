@@ -282,7 +282,10 @@ Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHill
             // cout << "cnt = " << cnt << endl;
             pair<Edge,Edge> pe = select_edges_noraml(graph, mt); 
 
-            if ( iscalced.find(pe) != iscalced.end() ) continue;
+            if ( iscalced.find(pe) != iscalced.end() ) {
+                ++cnt;
+                continue;
+            }
             iscalced.insert(pe);
 
             graph.simple_swing(pe.first, pe.second);

@@ -13,7 +13,7 @@ class ClimbParams {
 
     double alpha;
 
-    ClimbParams( int st_s, int range, int h, int r, int limt, int exe, int seed ) : st_s(st_s), range(range), h(h), r(r), limt(limt), exe(exe) , seed(seed), alpha(alpha) {}
+    ClimbParams( int st_s, int range, int h, int r, int limt, int exe, int seed, double alpha ) : st_s(st_s), range(range), h(h), r(r), limt(limt), exe(exe) , seed(seed), alpha(alpha) {}
 };
 
 #endif 
