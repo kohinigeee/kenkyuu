@@ -37,7 +37,7 @@ map<pair<Edge,Edge>, long long> makeEdgeScoresWithPathTrees( Graph& graph, vecto
             for ( TreeNode& node : tree.get_tnodes(level) ) {
                 for ( Edge& e : node.belows ) {
                     long long tmpscore = (tree.get_max_level()-node.level);
-                    scores[makeEdgePair(e, graph.getEdge(e))] += tmpscore;
+                    scores[makeEdgePair(e, graph.getEdge(e))] -= tmpscore;
                 }
                 for ( Edge& e : node.flats ) {
                     long long tmpscore = node.level;
@@ -117,7 +117,7 @@ bool directHillclimb_once_2(Graph& graph) {
             sort(edges.begin(), edges.end(), [&graph, &edgeScores](const Edge& e1, const Edge& e2) {
                 pair<Edge,Edge> pe1 = makeEdgePair(e1, graph.getEdge(e1)),
                                 pe2 = makeEdgePair(e2, graph.getEdge(e2));
-                return edgeScores[pe1] < edgeScores[pe2];
+                return edgeScores[pe1] > edgeScores[pe2];
             });
         
             //候補エッジによる近傍操作
@@ -269,7 +269,7 @@ bool directHillclimb_once(Graph& graph) {
 //指向性山登り+ランダム選択山登り
 Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHillclimbMethod_t dmethod) {
     Graph graph = graph_given;
-
+    set<pair<Edge,Edge>> iscalced;
     int cnt = 0;
 
     while(1) {
@@ -281,9 +281,14 @@ Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHill
         while( cnt < limt ) {
             // cout << "cnt = " << cnt << endl;
             pair<Edge,Edge> pe = select_edges_noraml(graph, mt); 
+
+            if ( iscalced.find(pe) != iscalced.end() ) continue;
+            iscalced.insert(pe);
+
             graph.simple_swing(pe.first, pe.second);
             if ( !(graph.isLinking() ) ) {
                 ++cnt;
+                graph.back();
                 continue;
             } 
 
@@ -311,7 +316,7 @@ Graph directHillclimbWithKick( Graph& graph_given, mt19937& mt, int limcnt, dire
     Graph best_graph = graph_given;
     GraphInfo best_info = best_graph.calcInfo();
     int cnt = 0;
-    double alpha = 0.6;
+    double alpha = 0.8;
     Graph graph = best_graph;
 
     const int s = graph_given.getSum_s();
@@ -321,16 +326,17 @@ Graph directHillclimbWithKick( Graph& graph_given, mt19937& mt, int limcnt, dire
     while( cnt < limcnt ) {
         Graph tmp = directHillclimb(graph, mt, alpha, dmethod);
         GraphInfo new_info = tmp.calcInfo();
-
+        
+        cout << "[Log] cnt = "<< cnt << ", new : = " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;
         if ( compInfo(new_info, best_info) ) {
             best_graph = tmp;
             best_info = new_info;
             cnt = 0;
 
-            cout << endl;
-            cout << "[Log]" << endl;
-            cout << best_info.get_diam() << endl;
-            cout << best_info.get_haspl() << endl;
+            // cout << endl;
+            // cout << "[Log]" << endl;
+            // cout << best_info.get_diam() << endl;
+            // cout << best_info.get_haspl() << endl;
         } else {
             Graph::set_seed(mt());
             graph = makeMDTgraph(tmp);
