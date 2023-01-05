@@ -330,7 +330,7 @@ Graph directHillclimbWithKick( Graph& graph_given, mt19937& mt, int limcnt, dire
         Graph tmp = directHillclimb(graph, mt, alpha, dmethod);
         GraphInfo new_info = tmp.calcInfo();
         
-        cout << "[Log] cnt = "<< cnt << ", new : = " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;
+        // cout << "[Log] cnt = "<< cnt << ", new : = " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;
         if ( compInfo(new_info, best_info) ) {
             best_graph = tmp;
             best_info = new_info;

@@ -1,0 +1,67 @@
+Type Name: h32_r4/directHillclimb_32_4
+start_s 25 range 15 h 32 r 4
+seed 1938224766 kick_limit 10 exe 3 alpha 0.80
+
+[Result] s=25
+avg_diam 7.00000 avg_haspl 5.01411
+best 7 5.01210
+
+[Result] s=26
+avg_diam 6.33333 avg_haspl 5.01478
+best 6 5.00202
+
+[Result] s=27
+avg_diam 6.00000 avg_haspl 5.01949
+best 6 5.01210
+
+[Result] s=28
+avg_diam 6.66667 avg_haspl 5.00403
+best 6 5.02823
+
+[Result] s=29
+avg_diam 6.00000 avg_haspl 4.99462
+best 6 4.97177
+
+[Result] s=30
+avg_diam 6.66667 avg_haspl 4.97379
+best 6 4.97177
+
+[Result] s=31
+avg_diam 6.33333 avg_haspl 4.96304
+best 6 4.95363
+
+[Result] s=32
+avg_diam 6.00000 avg_haspl 4.93548
+best 6 4.93548
+
+[Result] s=33
+avg_diam 6.00000 avg_haspl 4.95968
+best 6 4.95565
+
+[Result] s=34
+avg_diam 6.00000 avg_haspl 4.97782
+best 6 4.97379
+
+[Result] s=35
+avg_diam 6.00000 avg_haspl 4.99395
+best 6 4.99194
+
+[Result] s=36
+avg_diam 6.00000 avg_haspl 5.00941
+best 6 5.00605
+
+[Result] s=37
+avg_diam 6.66667 avg_haspl 5.01008
+best 6 5.03024
+
+[Result] s=38
+avg_diam 6.33333 avg_haspl 5.02621
+best 6 5.02218
+
+[Result] s=39
+avg_diam 6.66667 avg_haspl 5.03763
+best 6 5.05847
+
+[Result] s=40
+avg_diam 6.33333 avg_haspl 5.06922
+best 6 5.07056

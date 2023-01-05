@@ -1,67 +1,67 @@
 Type Name: h32_r4/hillclimb_32_4
 start_s 25 range 15 h 32 r 4
-seed 31433 kick_limit 10 exe 3 alpha 0.60
+seed 1938224766 kick_limit 10 exe 3 alpha 0.80
 
 [Result] s=25
-avg_diam 7.00000 avg_haspl 5.04435
-best 7 5.03629
+avg_diam 7.00000 avg_haspl 5.04099
+best 7 5.02419
 
 [Result] s=26
-avg_diam 7.00000 avg_haspl 5.02621
-best 7 5.01613
+avg_diam 7.00000 avg_haspl 5.02352
+best 7 5.01008
 
 [Result] s=27
-avg_diam 6.66667 avg_haspl 5.02218
-best 6 5.01210
+avg_diam 6.66667 avg_haspl 5.03495
+best 6 5.02621
 
 [Result] s=28
-avg_diam 7.00000 avg_haspl 5.02151
-best 7 5.00806
+avg_diam 7.00000 avg_haspl 5.01411
+best 7 5.00403
 
 [Result] s=29
-avg_diam 7.00000 avg_haspl 5.00134
-best 7 4.99395
+avg_diam 6.66667 avg_haspl 5.00134
+best 6 4.97177
 
 [Result] s=30
-avg_diam 7.00000 avg_haspl 4.99798
-best 7 4.98992
+avg_diam 7.00000 avg_haspl 4.99126
+best 7 4.98790
 
 [Result] s=31
-avg_diam 6.66667 avg_haspl 4.97715
-best 6 4.97782
+avg_diam 7.00000 avg_haspl 4.97177
+best 7 4.96169
 
 [Result] s=32
-avg_diam 6.66667 avg_haspl 4.95296
-best 6 4.93548
+avg_diam 6.66667 avg_haspl 4.95228
+best 6 4.94153
 
 [Result] s=33
-avg_diam 7.00000 avg_haspl 4.97581
-best 7 4.96573
+avg_diam 7.00000 avg_haspl 4.98925
+best 7 4.96774
 
 [Result] s=34
-avg_diam 7.00000 avg_haspl 4.99395
-best 7 4.98992
+avg_diam 7.00000 avg_haspl 4.99866
+best 7 4.98387
 
 [Result] s=35
-avg_diam 7.00000 avg_haspl 5.00672
-best 7 4.99798
+avg_diam 7.00000 avg_haspl 5.02016
+best 7 5.01613
 
 [Result] s=36
 avg_diam 7.00000 avg_haspl 5.02554
-best 7 5.01815
+best 7 5.02218
 
 [Result] s=37
-avg_diam 7.00000 avg_haspl 5.04906
-best 7 5.04234
+avg_diam 7.00000 avg_haspl 5.04167
+best 7 5.03831
 
 [Result] s=38
-avg_diam 7.00000 avg_haspl 5.05847
-best 7 5.05040
+avg_diam 7.00000 avg_haspl 5.05040
+best 7 5.02823
 
 [Result] s=39
-avg_diam 7.00000 avg_haspl 5.06048
+avg_diam 7.00000 avg_haspl 5.05847
 best 7 5.02419
 
 [Result] s=40
-avg_diam 7.00000 avg_haspl 5.04435
-best 7 5.01008
+avg_diam 7.00000 avg_haspl 5.07796
+best 7 5.07258

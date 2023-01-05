@@ -26,6 +26,15 @@ void stochars(const string& s, char* chs ) {
     chs[s.size()] = '\0';
 }
 
+// char stochar(const string& s ) {
+//     char buffs[256];
+//     for ( int i = 0; i < s.size(); ++i ) {
+//         buffs[i] = s[i];
+//     }
+//     buffs[s.size()] = '\0';
+//     return buffs;
+// }
+
 vector<int> makeRandomTree(int s, int r, mt19937& mt) {
     vector<int> p(s, -1);
     vector<int> cnt(s, 0);
