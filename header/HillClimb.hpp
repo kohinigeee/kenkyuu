@@ -43,6 +43,7 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
     GraphInfo best_info = graph.calcInfo();
 
     set<pair<Edge,Edge>> calced; //計算済みペア
+    char buff[256];
 
     long long limcnt = 0;
     while( limcnt < limn ) {
@@ -66,7 +67,10 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
         GraphInfo new_info = graph.calcInfo();
         
         if ( compInfo(new_info, best_info) ) {
-        cout << "[Log] new: " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;
+
+        sprintf(buff, "[Log] s=%d, h=%d, r=%d : %d, %.5lf\n", graph.getSum_s(), graph.getSum_h(), graph.get_r(), new_info.get_diam(), new_info.get_haspl());
+        cout << buff << flush;
+
             best_info = new_info;
             best = graph;
             limcnt = 0;

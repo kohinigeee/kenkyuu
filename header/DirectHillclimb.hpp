@@ -254,6 +254,11 @@ bool directHillclimb_once(Graph& graph) {
                     graph = tmp;
                     isUpdated = true;
                     isContinue = true;
+
+                    char buff[256];
+                    sprintf(buff, "DirectOnce1::[Log] s=%d, h=%d, r=%d : %d, %.5lf\n", graph.getSum_s(), graph.getSum_h(), graph.get_r(), new_info.get_diam(), new_info.get_haspl());
+                    cout << buff << flush;
+
                     break;
                 }
             }
