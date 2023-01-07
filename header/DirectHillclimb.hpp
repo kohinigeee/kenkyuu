@@ -141,6 +141,7 @@ bool directHillclimb_once_2(Graph& graph) {
                                         p2 = make_pair(new_info.get_diam(), new_info.get_haspl());
             
                 if ( p2 < p1 ) {
+                    cout << "[Log] new: " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;
                     result = new_result;
                     info = new_info;
                     graph = tmp;

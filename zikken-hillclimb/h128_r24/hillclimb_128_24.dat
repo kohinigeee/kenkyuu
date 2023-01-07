@@ -1,0 +1,47 @@
+Type Name: h128_r24/hillclimb_128_24
+start_s 7 range 10 h 128 r 24
+seed 1313187982 kick_limit 10 exe 1 alpha 0.60
+
+[Result] s=7
+avg_diam 4.00000 avg_haspl 2.97933
+best 4 2.97933
+
+[Result] s=8
+avg_diam 4.00000 avg_haspl 2.94082
+best 4 2.94082
+
+[Result] s=9
+avg_diam 3.00000 avg_haspl 2.92311
+best 3 2.92311
+
+[Result] s=10
+avg_diam 3.00000 avg_haspl 2.93061
+best 3 2.93061
+
+[Result] s=11
+avg_diam 3.00000 avg_haspl 2.93590
+best 3 2.93590
+
+[Result] s=12
+avg_diam 3.00000 avg_haspl 2.94427
+best 3 2.94427
+
+[Result] s=13
+avg_diam 3.00000 avg_haspl 2.95153
+best 3 2.95153
+
+[Result] s=14
+avg_diam 3.00000 avg_haspl 2.95362
+best 3 2.95362
+
+[Result] s=15
+avg_diam 3.00000 avg_haspl 2.95817
+best 3 2.95817
+
+[Result] s=16
+avg_diam 3.00000 avg_haspl 2.97084
+best 3 2.97084
+
+[Result] s=17
+avg_diam 3.00000 avg_haspl 2.96321
+best 3 2.96321

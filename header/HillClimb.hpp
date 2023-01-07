@@ -64,7 +64,9 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
         }
 
         GraphInfo new_info = graph.calcInfo();
+        
         if ( compInfo(new_info, best_info) ) {
+        cout << "[Log] new: " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;
             best_info = new_info;
             best = graph;
             limcnt = 0;
