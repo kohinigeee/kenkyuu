@@ -1,0 +1,47 @@
+Type Name: h80_r6/hillclimb_80_6
+start_s 35 range 10 h 80 r 6
+seed -1732461210 kick_limit 5 exe 1 alpha 0.50
+
+[Result] s=35
+avg_diam 6.00000 avg_haspl 4.56804
+best 6 4.56804
+
+[Result] s=36
+avg_diam 6.00000 avg_haspl 4.56044
+best 6 4.56044
+
+[Result] s=37
+avg_diam 6.00000 avg_haspl 4.56614
+best 6 4.56614
+
+[Result] s=38
+avg_diam 6.00000 avg_haspl 4.55854
+best 6 4.55854
+
+[Result] s=39
+avg_diam 6.00000 avg_haspl 4.56044
+best 6 4.56044
+
+[Result] s=40
+avg_diam 6.00000 avg_haspl 4.55158
+best 6 4.55158
+
+[Result] s=41
+avg_diam 6.00000 avg_haspl 4.55475
+best 6 4.55475
+
+[Result] s=42
+avg_diam 6.00000 avg_haspl 4.57247
+best 6 4.57247
+
+[Result] s=43
+avg_diam 6.00000 avg_haspl 4.56171
+best 6 4.56171
+
+[Result] s=44
+avg_diam 6.00000 avg_haspl 4.57658
+best 6 4.57658
+
+[Result] s=45
+avg_diam 6.00000 avg_haspl 4.56487
+best 6 4.56487

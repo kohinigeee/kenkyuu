@@ -141,7 +141,7 @@ bool directHillclimb_once_2(Graph& graph) {
                                         p2 = make_pair(new_info.get_diam(), new_info.get_haspl());
             
                 if ( p2 < p1 ) {
-                    cout << "[Log] new: " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;
+                    // cout << "[Log] new: " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;
                     result = new_result;
                     info = new_info;
                     graph = tmp;
@@ -249,15 +249,15 @@ bool directHillclimb_once(Graph& graph) {
                                         p2 = make_pair(new_info.get_diam(), new_info.get_haspl());
             
                 if ( p2 < p1 ) {
+                    // char buff[256];
+                    // sprintf(buff, "DirectOnce1::[Log] s=%d, h=%d, r=%d : new=%d, %.5lf  prev=%d, %.5lf\n", graph.getSum_s(), graph.getSum_h(), graph.get_r(), new_info.get_diam(), new_info.get_haspl(), info.get_diam(), info.get_haspl());
+                    // cout << buff << flush;
+
                     result = new_result;
                     info = new_info;
                     graph = tmp;
                     isUpdated = true;
                     isContinue = true;
-
-                    char buff[256];
-                    sprintf(buff, "DirectOnce1::[Log] s=%d, h=%d, r=%d : %d, %.5lf\n", graph.getSum_s(), graph.getSum_h(), graph.get_r(), new_info.get_diam(), new_info.get_haspl());
-                    cout << buff << flush;
 
                     break;
                 }
@@ -279,7 +279,7 @@ Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHill
     int cnt = 0;
 
     while(1) {
-        if ( dmethod(graph) ) continue;;
+        if ( dmethod(graph) ) continue;
 
         long long limt = alpha*countEdges(graph); 
         GraphInfo info = graph.calcInfo();
@@ -338,6 +338,10 @@ Graph directHillclimbWithKick( Graph& graph_given, mt19937& mt, int limcnt, dire
         
         // cout << "[Log] cnt = "<< cnt << ", new : = " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;
         if ( compInfo(new_info, best_info) ) {
+            char buff[256]; 
+            sprintf(buff, "DirectOnce1::[Log] s=%d, h=%d, r=%d : new=%d, %.5lf  prev=%d, %.5lf\n", graph.getSum_s(), graph.getSum_h(), graph.get_r(), new_info.get_diam(), new_info.get_haspl(), best_info.get_diam(), best_info.get_haspl());
+            cout << buff << flush;
+
             best_graph = tmp;
             best_info = new_info;
             cnt = 0;

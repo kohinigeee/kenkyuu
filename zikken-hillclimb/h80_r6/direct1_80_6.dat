@@ -1,67 +1,11 @@
 Type Name: h80_r6/direct1_80_6
-start_s 25 range 15 h 80 r 6
-seed 741472848 kick_limit 10 exe 3 alpha 0.80
+start_s 42 range 1 h 80 r 6
+seed -1216542307 kick_limit 20 exe 1 alpha 0.80
 
-[Result] s=25
-avg_diam 6.00000 avg_haspl 4.79916
-best 6 4.79272
+[Result] s=42
+avg_diam 6.00000 avg_haspl 4.61899
+best 6 4.61899
 
-[Result] s=26
-avg_diam 6.00000 avg_haspl 4.75274
-best 6 4.74082
-
-[Result] s=27
-avg_diam 6.00000 avg_haspl 4.69051
-best 6 4.68608
-
-[Result] s=28
-avg_diam 6.00000 avg_haspl 4.66224
-best 6 4.65095
-
-[Result] s=29
-avg_diam 6.00000 avg_haspl 4.62563
-best 6 4.61930
-
-[Result] s=30
-avg_diam 6.00000 avg_haspl 4.60717
-best 6 4.59937
-
-[Result] s=31
-avg_diam 6.00000 avg_haspl 4.58481
-best 6 4.58070
-
-[Result] s=32
-avg_diam 6.00000 avg_haspl 4.58966
-best 6 4.58259
-
-[Result] s=33
-avg_diam 6.00000 avg_haspl 4.56371
-best 6 4.56013
-
-[Result] s=34
-avg_diam 6.00000 avg_haspl 4.56086
-best 6 4.55570
-
-[Result] s=35
-avg_diam 6.00000 avg_haspl 4.54736
-best 6 4.53354
-
-[Result] s=36
-avg_diam 6.00000 avg_haspl 4.56192
-best 6 4.54778
-
-[Result] s=37
-avg_diam 6.00000 avg_haspl 4.55042
-best 6 4.54494
-
-[Result] s=38
-avg_diam 6.00000 avg_haspl 4.54325
-best 6 4.54051
-
-[Result] s=39
-avg_diam 6.00000 avg_haspl 4.55190
-best 6 4.53481
-
-[Result] s=40
-avg_diam 6.00000 avg_haspl 4.54008
-best 6 4.53291
+[Result] s=43
+avg_diam 6.00000 avg_haspl 4.59082
+best 6 4.59082

@@ -1,0 +1,47 @@
+Type Name: h80_r6/direct2_80_6
+start_s 35 range 10 h 80 r 6
+seed -1732461210 kick_limit 5 exe 1 alpha 0.50
+
+[Result] s=35
+avg_diam 6.00000 avg_haspl 4.60158
+best 6 4.60158
+
+[Result] s=36
+avg_diam 6.00000 avg_haspl 4.59684
+best 6 4.59684
+
+[Result] s=37
+avg_diam 6.00000 avg_haspl 4.61994
+best 6 4.61994
+
+[Result] s=38
+avg_diam 6.00000 avg_haspl 4.60854
+best 6 4.60854
+
+[Result] s=39
+avg_diam 6.00000 avg_haspl 4.58101
+best 6 4.58101
+
+[Result] s=40
+avg_diam 6.00000 avg_haspl 4.58671
+best 6 4.58671
+
+[Result] s=41
+avg_diam 6.00000 avg_haspl 4.57089
+best 6 4.57089
+
+[Result] s=42
+avg_diam 6.00000 avg_haspl 4.60000
+best 6 4.60000
+
+[Result] s=43
+avg_diam 6.00000 avg_haspl 4.58671
+best 6 4.58671
+
+[Result] s=44
+avg_diam 6.00000 avg_haspl 4.59209
+best 6 4.59209
+
+[Result] s=45
+avg_diam 6.00000 avg_haspl 4.58861
+best 6 4.58861

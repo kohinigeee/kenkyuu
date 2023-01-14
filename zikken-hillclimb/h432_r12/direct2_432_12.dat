@@ -1,0 +1,87 @@
+Type Name: h432_r12/direct2_432_12
+start_s 50 range 20 h 432 r 12
+seed 1113221644 kick_limit 10 exe 1 alpha 0.30
+
+[Result] s=50
+avg_diam 7.00000 avg_haspl 5.07728
+best 7 5.07728
+
+[Result] s=51
+avg_diam 7.00000 avg_haspl 4.97922
+best 7 4.97922
+
+[Result] s=52
+avg_diam 7.00000 avg_haspl 4.88826
+best 7 4.88826
+
+[Result] s=53
+avg_diam 7.00000 avg_haspl 4.87090
+best 7 4.87090
+
+[Result] s=54
+avg_diam 6.00000 avg_haspl 4.75100
+best 6 4.75100
+
+[Result] s=55
+avg_diam 6.00000 avg_haspl 4.69574
+best 6 4.69574
+
+[Result] s=56
+avg_diam 6.00000 avg_haspl 4.65401
+best 6 4.65401
+
+[Result] s=57
+avg_diam 6.00000 avg_haspl 4.63485
+best 6 4.63485
+
+[Result] s=58
+avg_diam 6.00000 avg_haspl 4.58880
+best 6 4.58880
+
+[Result] s=59
+avg_diam 6.00000 avg_haspl 4.57265
+best 6 4.57265
+
+[Result] s=60
+avg_diam 6.00000 avg_haspl 4.54948
+best 6 4.54948
+
+[Result] s=61
+avg_diam 6.00000 avg_haspl 4.52936
+best 6 4.52936
+
+[Result] s=62
+avg_diam 6.00000 avg_haspl 4.50208
+best 6 4.50208
+
+[Result] s=63
+avg_diam 6.00000 avg_haspl 4.50839
+best 6 4.50839
+
+[Result] s=64
+avg_diam 6.00000 avg_haspl 4.48335
+best 6 4.48335
+
+[Result] s=65
+avg_diam 6.00000 avg_haspl 4.48401
+best 6 4.48401
+
+[Result] s=66
+avg_diam 6.00000 avg_haspl 4.46602
+best 6 4.46602
+
+[Result] s=67
+avg_diam 6.00000 avg_haspl 4.46494
+best 6 4.46494
+
+[Result] s=68
+avg_diam 6.00000 avg_haspl 4.46318
+best 6 4.46318
+
+[Result] s=69
+avg_diam 6.00000 avg_haspl 4.44428
+best 6 4.44428
+
+[Result] s=70
+avg_diam 6.00000 avg_haspl 4.44671
+best 6 4.44671

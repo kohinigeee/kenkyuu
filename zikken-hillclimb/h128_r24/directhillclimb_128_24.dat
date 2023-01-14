@@ -1,0 +1,47 @@
+Type Name: h128_r24/directhillclimb_128_24
+start_s 7 range 10 h 128 r 24
+seed -694300956 kick_limit 10 exe 1 alpha 0.30
+
+[Result] s=7
+avg_diam 4.00000 avg_haspl 2.93971
+best 4 2.93971
+
+[Result] s=8
+avg_diam 3.00000 avg_haspl 2.91191
+best 3 2.91191
+
+[Result] s=9
+avg_diam 3.00000 avg_haspl 2.92397
+best 3 2.92397
+
+[Result] s=10
+avg_diam 3.00000 avg_haspl 2.91216
+best 3 2.91216
+
+[Result] s=11
+avg_diam 3.00000 avg_haspl 2.92003
+best 3 2.92003
+
+[Result] s=12
+avg_diam 3.00000 avg_haspl 2.91855
+best 3 2.91855
+
+[Result] s=13
+avg_diam 3.00000 avg_haspl 2.93036
+best 3 2.93036
+
+[Result] s=14
+avg_diam 3.00000 avg_haspl 2.91499
+best 3 2.91499
+
+[Result] s=15
+avg_diam 3.00000 avg_haspl 2.90994
+best 3 2.90994
+
+[Result] s=16
+avg_diam 3.00000 avg_haspl 2.92335
+best 3 2.92335
+
+[Result] s=17
+avg_diam 3.00000 avg_haspl 2.93492
+best 3 2.93492

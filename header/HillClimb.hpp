@@ -6,6 +6,11 @@
 #include "MDST.hpp"
 
 using hillclimb_func = Graph(*)(Graph&, const int n, const int seed, select_func);
+int hill_limt_eval = -1;
+
+void set_hill_limt(int limt ) {
+    hill_limt_eval = limt;
+}
 
 long long countEdges(Graph& graph) {
     long long ans = 0;
@@ -46,7 +51,11 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
     char buff[256];
 
     long long limcnt = 0;
+
+    long long evalcnt = 0;
     while( limcnt < limn ) {
+        if ( hill_limt_eval > 0 && hill_limt_eval <= evalcnt ) break;
+
         pair<Edge,Edge> pee = select(graph, mt);
         
         pair<Edge,Edge> tmp = makeEdgePair(pee.first, pee.second);
@@ -58,6 +67,9 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
         calced.insert(tmp);
 
         graph.simple_swing(pee.first, pee.second);
+
+        ++evalcnt;
+
         if ( !graph.isLinking() ) {
             graph.back();
             ++limcnt;
@@ -68,8 +80,8 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
         
         if ( compInfo(new_info, best_info) ) {
 
-        sprintf(buff, "[Log] s=%d, h=%d, r=%d : %d, %.5lf\n", graph.getSum_s(), graph.getSum_h(), graph.get_r(), new_info.get_diam(), new_info.get_haspl());
-        cout << buff << flush;
+        // sprintf(buff, "[Log] s=%d, h=%d, r=%d : %d, %.5lf\n", graph.getSum_s(), graph.getSum_h(), graph.get_r(), new_info.get_diam(), new_info.get_haspl());
+        // cout << buff << flush;
 
             best_info = new_info;
             best = graph;

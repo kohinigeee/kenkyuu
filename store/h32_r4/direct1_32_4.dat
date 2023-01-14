@@ -1,0 +1,67 @@
+Type Name: h32_r4/direct1_32_4
+start_s 25 range 15 h 32 r 4
+seed 1836540150 kick_limit 5 exe 1 alpha 0.50
+
+[Result] s=25
+avg_diam 7.00000 avg_haspl 5.11492
+best 7 5.11492
+
+[Result] s=26
+avg_diam 7.00000 avg_haspl 5.08266
+best 7 5.08266
+
+[Result] s=27
+avg_diam 7.00000 avg_haspl 5.08871
+best 7 5.08871
+
+[Result] s=28
+avg_diam 7.00000 avg_haspl 5.09274
+best 7 5.09274
+
+[Result] s=29
+avg_diam 7.00000 avg_haspl 5.04032
+best 7 5.04032
+
+[Result] s=30
+avg_diam 7.00000 avg_haspl 5.04839
+best 7 5.04839
+
+[Result] s=31
+avg_diam 7.00000 avg_haspl 5.02823
+best 7 5.02823
+
+[Result] s=32
+avg_diam 7.00000 avg_haspl 5.09073
+best 7 5.09073
+
+[Result] s=33
+avg_diam 7.00000 avg_haspl 5.10282
+best 7 5.10282
+
+[Result] s=34
+avg_diam 7.00000 avg_haspl 5.06855
+best 7 5.06855
+
+[Result] s=35
+avg_diam 7.00000 avg_haspl 5.07258
+best 7 5.07258
+
+[Result] s=36
+avg_diam 7.00000 avg_haspl 5.16331
+best 7 5.16331
+
+[Result] s=37
+avg_diam 7.00000 avg_haspl 5.10887
+best 7 5.10887
+
+[Result] s=38
+avg_diam 7.00000 avg_haspl 5.10081
+best 7 5.10081
+
+[Result] s=39
+avg_diam 7.00000 avg_haspl 5.11694
+best 7 5.11694
+
+[Result] s=40
+avg_diam 7.00000 avg_haspl 5.14315
+best 7 5.14315

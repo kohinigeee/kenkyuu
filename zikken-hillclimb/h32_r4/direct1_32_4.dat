@@ -1,67 +1,67 @@
 Type Name: h32_r4/direct1_32_4
 start_s 25 range 15 h 32 r 4
-seed 1938224766 kick_limit 10 exe 3 alpha 0.80
+seed 1836540150 kick_limit 5 exe 1 alpha 0.50
 
 [Result] s=25
-avg_diam 7.00000 avg_haspl 5.03024
-best 7 5.02218
+avg_diam 7.00000 avg_haspl 5.11492
+best 7 5.11492
 
 [Result] s=26
-avg_diam 6.66667 avg_haspl 5.01949
-best 6 5.02621
+avg_diam 7.00000 avg_haspl 5.08266
+best 7 5.08266
 
 [Result] s=27
-avg_diam 7.00000 avg_haspl 5.02352
-best 7 5.02016
+avg_diam 7.00000 avg_haspl 5.08871
+best 7 5.08871
 
 [Result] s=28
-avg_diam 7.00000 avg_haspl 5.00941
-best 7 5.00605
+avg_diam 7.00000 avg_haspl 5.09274
+best 7 5.09274
 
 [Result] s=29
-avg_diam 7.00000 avg_haspl 4.99664
-best 7 4.99194
+avg_diam 7.00000 avg_haspl 5.04032
+best 7 5.04032
 
 [Result] s=30
-avg_diam 7.00000 avg_haspl 4.98790
-best 7 4.97581
+avg_diam 7.00000 avg_haspl 5.04839
+best 7 5.04839
 
 [Result] s=31
-avg_diam 6.66667 avg_haspl 4.95766
-best 6 4.95968
+avg_diam 7.00000 avg_haspl 5.02823
+best 7 5.02823
 
 [Result] s=32
-avg_diam 6.66667 avg_haspl 4.96640
-best 6 4.97379
+avg_diam 7.00000 avg_haspl 5.09073
+best 7 5.09073
 
 [Result] s=33
-avg_diam 6.66667 avg_haspl 4.96707
-best 6 4.96371
+avg_diam 7.00000 avg_haspl 5.10282
+best 7 5.10282
 
 [Result] s=34
-avg_diam 7.00000 avg_haspl 4.98589
-best 7 4.98185
+avg_diam 7.00000 avg_haspl 5.06855
+best 7 5.06855
 
 [Result] s=35
-avg_diam 6.33333 avg_haspl 4.99798
-best 6 4.99194
+avg_diam 7.00000 avg_haspl 5.07258
+best 7 5.07258
 
 [Result] s=36
-avg_diam 7.00000 avg_haspl 5.02151
-best 7 5.01411
+avg_diam 7.00000 avg_haspl 5.16331
+best 7 5.16331
 
 [Result] s=37
-avg_diam 7.00000 avg_haspl 5.02823
-best 7 5.02218
+avg_diam 7.00000 avg_haspl 5.10887
+best 7 5.10887
 
 [Result] s=38
-avg_diam 7.00000 avg_haspl 5.05309
-best 7 5.04435
+avg_diam 7.00000 avg_haspl 5.10081
+best 7 5.10081
 
 [Result] s=39
-avg_diam 7.00000 avg_haspl 5.07191
-best 7 5.06452
+avg_diam 7.00000 avg_haspl 5.11694
+best 7 5.11694
 
 [Result] s=40
-avg_diam 7.00000 avg_haspl 5.07325
-best 7 5.06653
+avg_diam 7.00000 avg_haspl 5.14315
+best 7 5.14315

@@ -37,6 +37,10 @@ void exp_hillcimb(vector<Results>& results, string name, int s, ClimbParams para
         results[idx].add_result(best); 
         mx.unlock();
     }
+    
+
+    sprintf(buff, "name = %s, s=%d is Finished\n", tmp, s); 
+    cout << buff << flush;
 }
 
 void do_hillclimb(string path, ClimbParams params ) {
@@ -64,6 +68,55 @@ void do_hillclimb(string path, ClimbParams params ) {
     output(tmp, params, results);
 }
 
+
+
+void exp_direc2(vector<Results>& results, string name, int s, ClimbParams params) {
+    mt19937 seed_gen;
+    seed_gen.seed(params.seed);
+
+    char buff[256];
+    char tmp[256];
+    stochars(name, tmp);
+    
+    int idx = s-params.st_s;
+    for ( int j = 0; j < params.exe; ++j ) {
+        sprintf(buff, "name = %s, s=%d, j=%d\n", tmp, s, j); 
+        cout << buff << flush;
+        
+        Graph::set_seed(seed_gen());
+        Graph graph = Graph::make(s, params.h, params.r, 1);
+        directHillclimb_once_2(graph);
+
+        mx.lock();
+        results[idx].add_result(graph); 
+        mx.unlock();
+    }
+}
+
+void do_direct2(string path, ClimbParams params ) {
+    mt19937 seed_gen;
+    seed_gen.seed(params.seed);
+ 
+    vector<Results> results(params.range+1);
+    map<int, thread> thmap;
+
+    string name = "direct2_" + to_string(params.h)+"_"+to_string(params.r);
+    char buffs[256];
+    char name_ch[256];
+
+    for ( int i = 0; i <= params.range; ++i ) {
+        const int s = params.st_s+i;
+        ClimbParams tmp  = params;
+        params.seed = seed_gen();
+
+        thmap[s] = thread(exp_direc2, ref(results), name, s, tmp);
+    }
+
+    for ( auto& p : thmap ) p.second.join();
+
+    string tmp = path+"/"+name;
+    output(tmp, params, results);
+}
 
 void exp_direc1(vector<Results>& results, string name, int s, ClimbParams params) {
     mt19937 seed_gen;
@@ -113,120 +166,55 @@ void do_direct1(string path, ClimbParams params ) {
     output(tmp, params, results);
 }
 
-void exp_directhillclimb(string path, ClimbParams& params ) {
+
+void exp_directhillclimb(vector<Results>& results, string name, int s, ClimbParams params) {
+    mt19937 seed_gen;
+    seed_gen.seed(params.seed);
+
+    char buff[256];
+    char tmp[256];
+    stochars(name, tmp);
+    
+    int idx = s-params.st_s;
+    for ( int j = 0; j < params.exe; ++j ) {
+        sprintf(buff, "name = %s, s=%d, j=%d\n", tmp, s, j); 
+        cout << buff << flush;
+        
+        Graph::set_seed(seed_gen());
+        mt19937 mt; mt.seed(seed_gen());
+        Graph graph = Graph::make(s, params.h, params.r, 1);
+        Graph best = directHillclimbWithKick(graph, mt, params.limt, directHillclimb_once_2);
+
+        mx.lock();
+        results[idx].add_result(best); 
+        mx.unlock();
+    }
+}
+
+void do_directhillclimb(string path, ClimbParams params ) {
     mt19937 seed_gen;
     seed_gen.seed(params.seed);
  
     vector<Results> results(params.range+1);
-    string name = "directHillclimb_" + to_string(params.h)+"_"+to_string(params.r);
+    map<int, thread> thmap;
+
+    string name = "directhillclimb_" + to_string(params.h)+"_"+to_string(params.r);
     char buffs[256];
     char name_ch[256];
 
-    stochars(name, name_ch); 
-    // cout << "name : " << name << endl;
-    long long sum = params.exe*(params.range+1);
-    long long cnt = 0;
-
     for ( int i = 0; i <= params.range; ++i ) {
         const int s = params.st_s+i;
+        ClimbParams tmp  = params;
+        params.seed = seed_gen();
 
-        for ( int j = 0; j < params.exe; ++j ) {
-            double prop = cnt/(double)sum;
-            sprintf(buffs, "name = %s, s=%d, j=%d  [%.1lf%]\n", name_ch, s, j, prop*100);
-            cout << buffs << flush; 
-
-            Graph::set_seed(seed_gen());
-            mt19937 mt; mt.seed(seed_gen());
-            Graph graph = Graph::make(s, params.h, params.r, 1);
-            Graph best = directHillclimbWithKick(graph, mt, params.limt, directHillclimb_once_2);
-            results[i].add_result(best);
-
-            ++cnt;
-        }
+        thmap[s] = thread(exp_directhillclimb, ref(results), name, s, tmp);
     }
+
+    for ( auto& p : thmap ) p.second.join();
 
     string tmp = path+"/"+name;
     output(tmp, params, results);
 }
-
-
-void exp_direct_1(string path, ClimbParams& params ) {
-    mt19937 seed_gen;
-    seed_gen.seed(params.seed);
- 
-    vector<Results> results(params.range+1);
-    string name = "direct1_" + to_string(params.h)+"_"+to_string(params.r);
-    char buffs[256];
-    char name_ch[256];
-
-    stochars(name, name_ch); 
-    // cout << "name : " << name << endl;
-    long long sum = params.exe*(params.range+1);
-    long long cnt = 0;
-
-    for ( int i = 0; i <= params.range; ++i ) {
-        const int s = params.st_s+i;
-
-        for ( int j = 0; j < params.exe; ++j ) {
-            double prop = cnt/(double)sum;
-            sprintf(buffs, "name = %s, s=%d, j=%d  [%.1lf%]\n", name_ch, s, j, prop*100);
-            cout << buffs << flush; 
-
-            Graph::set_seed(seed_gen());
-            mt19937 mt; mt.seed(seed_gen());
-            Graph graph = Graph::make(s, params.h, params.r, 1);
-            // Graph best = directHillclimb(graph, mt, params.alpha, directHillclimb_once);
-            directHillclimb_once(graph);
-            Graph best = graph;
-            results[i].add_result(best);
-
-            ++cnt;
-        } 
-    }
-
-    string tmp = path+"/"+name;
-    output(tmp, params, results);
-}
-
-//GraphTree利用
-void exp_direct_2(string path, ClimbParams& params ) {
-    mt19937 seed_gen;
-    seed_gen.seed(params.seed);
- 
-    vector<Results> results(params.range+1);
-    string name = "direct2_" + to_string(params.h)+"_"+to_string(params.r);
-    char buffs[256];
-    char name_ch[256];
-
-    stochars(name, name_ch); 
-    // cout << "name : " << name << endl;
-    long long sum = params.exe*(params.range+1);
-    long long cnt = 0;
-
-    for ( int i = 0; i <= params.range; ++i ) {
-        const int s = params.st_s+i;
-
-        for ( int j = 0; j < params.exe; ++j ) {
-            double prop = cnt/(double)sum;
-            sprintf(buffs, "name = %s, s=%d, j=%d  [%.1lf%]\n", name_ch, s, j, prop*100);
-            cout << buffs << flush; 
-
-            Graph::set_seed(seed_gen());
-            mt19937 mt; mt.seed(seed_gen());
-            Graph graph = Graph::make(s, params.h, params.r, 1);
-            // Graph best = directHillclimb(graph, mt, params.alpha, directHillclimb_once_2);
-            directHillclimb_once_2(graph);
-            Graph best = graph;
-            results[i].add_result(best);
-
-            ++cnt;
-        } 
-    }
-
-    string tmp = path+"/"+name;
-    output(tmp, params, results);
-}
-
 
 void output(string name, ClimbParams& params, vector<Results>& results ) {
     string fname = name+".dat";
@@ -264,63 +252,54 @@ void output(string name, ClimbParams& params, vector<Results>& results ) {
     cout << "Output to " << fname << endl;
 }
 
-// void exp_func(string path, ClimbParams params) {
-//     exp_hillclimb(path, params);
-//     exp_direct_1(path, params);
-//     exp_direct_2(path, params);
-//     exp_directhillclimb(path, params);
-// }
-
-void func1() {
-    cout << "exe Func1" << endl;
+void exp_func(string path, ClimbParams params) {
+    do_hillclimb(path, params);
+    do_direct1(path, params);
+    do_direct2(path, params);
+    do_directhillclimb(path, params);
 }
+
+// void func1() {
+//     cout << "exe Func1" << endl;
+// }
 
 int main()
 {
     debug_off();
     annealing_log_off_all();
 
-    const int seed = 848;
+    const int seed = 384;
     const int limt = 10;
     const int exe = 1;
-    double alpha = 0.6;
+    double alpha = 0.3;
 
     mt19937 mt;
     mt.seed(seed);
 
     vector<string> paths;
-    paths.push_back("h32_r4");
-    paths.push_back("h80_r6");
-    paths.push_back("h128_r24");
+    // paths.push_back("h32_r4");
+    // paths.push_back("h80_r6");
+    // paths.push_back("h128_r24");
     paths.push_back("h432_r12");
-    paths.push_back("h1281_r21");
+    // paths.push_back("h1281_r21");
+    // paths.push_back("h1024_r5");
 
     vector<ClimbParams> params;
-    params.push_back(ClimbParams(25, 25, 32, 4, limt, exe, mt(), alpha));
-    params.push_back(ClimbParams(35, 25, 80, 6, limt, exe, mt(), alpha));
-    params.push_back(ClimbParams(7, 10, 128, 24, limt, exe, mt(), alpha));
-    params.push_back(ClimbParams(50, 30, 432, 12, limt, exe, mt(), alpha));
-    params.push_back(ClimbParams(75, 35, 1281, 21, limt, exe, mt(), alpha));
+    // params.push_back(ClimbParams(25, 15, 32, 4, limt, exe, mt(), alpha));
+    // params.push_back(ClimbParams(42, 1, 80, 6, limt, exe, mt(), alpha));
+    // params.push_back(ClimbParams(7, 10, 128, 24, limt, exe, mt(), alpha));
+    params.push_back(ClimbParams(50, 20, 432, 12, limt, exe, mt(), alpha));
+    // params.push_back(ClimbParams(75, 35, 1281, 21, limt, exe, mt(), alpha));
+    // params.push_back(ClimbParams(750, 1, 1024, 5, limt, exe, mt(), alpha));
 
-    thread th1(do_hillclimb, paths[0], params[0]);
-    thread th2(do_direct1, paths[0], params[0]);
+    map<string, thread> ths;
 
-    th1.join();
-    th2.join();
-    // thread th1(exp_func, paths[0], params[0]);
-    // thread th2(exp_func, paths[1], params[1]);
+    for ( int i = 0; i < paths.size(); ++i ) {
+        ths[paths[i]] = thread(exp_func, paths[i], params[i]);
+    }
 
-    // thread th1(exp_hillclimb, paths[0], params[0]);
-    // thread th2(exp_hillclimb, paths[1], params[1]);
-    // thread th3(exp_hillclimb, paths[2], params[2]);
-    // thread th4(exp_hillclimb, paths[3], params[3]);
-    // thread th5(exp_hillclimb, paths[4], params[4]);
+    for ( auto& p : ths ) p.second.join();
 
-    // th1.join();
-    // th2.join();
-    // th3.join();
-    // th4.join();
-    // th5.join();
-
+    cout << "All finished" << endl;
     return 0;
 }
