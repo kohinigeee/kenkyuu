@@ -10,7 +10,7 @@
 #include "HillClimb.hpp"
 
 using namespace std;
-using directHillclimbMethod_t = bool(*) (Graph& graph);
+using directHillclimbMethod_t = bool(*) (Graph& graph, long long st_time, long long limt_time);
 
 Edge takeHostEdge(Graph& graph, G_no g_no, Node_no node_no) {
     Switch sw = graph.getSwitch(g_no, node_no);
@@ -52,11 +52,12 @@ map<pair<Edge,Edge>, long long> makeEdgeScoresWithPathTrees( Graph& graph, vecto
 //種数1前提
 //戻り値: 更新が行われたか
 //edge_scores: makeEdgeScoreWithPathTree
-bool directHillclimb_once_2(Graph& graph) {
+bool directHillclimb_once_2(Graph& graph, long long st_time = 0, long long limt_time = -1 ) {
 
     GraphResult result = graph.calcBFS();
     GraphInfo info = graph.calcInfo(result);
     bool isUpdated = false;
+    time_t time_start = clock();
 
     while(1) {
         bool isContinue = false;
@@ -124,6 +125,10 @@ bool directHillclimb_once_2(Graph& graph) {
             //即時移動戦略
 
             for ( Edge swEdge : edges ) {
+                time_t now = clock();
+                long long dura = double(now-time_start)/CLOCKS_PER_SEC;
+                if( limt_time > 0 && dura+st_time >= limt_time ) return false;
+
                 Graph tmp = graph;
 
                 pair<Edge,Edge> pe = makeEdgePair(swEdge, hostEdge);
@@ -162,11 +167,13 @@ bool directHillclimb_once_2(Graph& graph) {
 
 //種数1前提
 //戻り値: 更新が行われたか
-bool directHillclimb_once(Graph& graph) {
+bool directHillclimb_once(Graph& graph, long long st_time = 0, long long limt_time = -1) {
 
     GraphResult result = graph.calcBFS();
     GraphInfo info = graph.calcInfo(result);
     bool isUpdated = false;
+
+    time_t time_start = clock();
 
     while(1) {
         bool isContinue = false;
@@ -232,6 +239,11 @@ bool directHillclimb_once(Graph& graph) {
             //即時移動戦略
 
             for ( Edge swEdge : edges ) {
+
+                time_t now = clock();
+                long long dura = double(now-time_start)/CLOCKS_PER_SEC;
+                if( limt_time > 0 && dura+st_time >= limt_time ) return false;
+
                 Graph tmp = graph;
 
                 pair<Edge,Edge> pe = makeEdgePair(swEdge, hostEdge);
@@ -273,18 +285,32 @@ bool directHillclimb_once(Graph& graph) {
 }
 
 //指向性山登り+ランダム選択山登り
-Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHillclimbMethod_t dmethod) {
+Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHillclimbMethod_t dmethod, long long limt_time = -1, long long st_time = 0 ) {
     Graph graph = graph_given;
     set<pair<Edge,Edge>> iscalced;
     int cnt = 0;
+    long long spnet_time = 0;
+    time_t time_start;
 
     while(1) {
-        if ( dmethod(graph) ) continue;
-
+        time_start = clock();
+        if ( dmethod(graph, spnet_time, limt_time) ) continue;
+        time_t time_now = clock();
+        long long dura = double(time_now-time_start)/CLOCKS_PER_SEC;
+        spnet_time += dura;
+ 
         long long limt = alpha*countEdges(graph); 
         GraphInfo info = graph.calcInfo();
         long long cnt = 0;
         while( cnt < limt ) {
+            
+            time_t time_now = clock();
+            long long dura = double(time_now-time_start)/CLOCKS_PER_SEC;
+            spnet_time += dura;
+            if ( limt_time > 0 && spnet_time+st_time >= limt_time ){
+                return graph;
+            }
+
             // cout << "cnt = " << cnt << endl;
             pair<Edge,Edge> pe = select_edges_noraml(graph, mt); 
 
@@ -321,7 +347,7 @@ Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHill
 
 //dmethod : 指向性山登りのメソッド ( direct_hilcllimb_once or ~_once2 )
 //limcnt : 未更新回数の限界値
-Graph directHillclimbWithKick( Graph& graph_given, mt19937& mt, int limcnt, directHillclimbMethod_t dmethod ) {
+Graph directHillclimbWithKick( Graph& graph_given, mt19937& mt, int limcnt, directHillclimbMethod_t dmethod, long long limt_time = -1, long long st_time = 0 ) {
     Graph best_graph = graph_given;
     GraphInfo best_info = best_graph.calcInfo();
     int cnt = 0;
@@ -332,8 +358,18 @@ Graph directHillclimbWithKick( Graph& graph_given, mt19937& mt, int limcnt, dire
     const int h = graph_given.getSum_h();
     const int r = graph_given.get_r();
 
+    long long spent_time = 0;
+
     while( cnt < limcnt ) {
-        Graph tmp = directHillclimb(graph, mt, alpha, dmethod);
+        
+        time_t time_start = clock();
+        Graph tmp = directHillclimb(graph, mt, alpha, dmethod, limcnt, spent_time);
+        time_t time_now = clock();
+        long long dura = double(time_now-time_start)/CLOCKS_PER_SEC;
+        spent_time += dura;
+        if ( limt_time > 0 && spent_time + st_time >= limt_time ) return best_graph;
+        // cout << "[Log] spent time = " << spent_time << endl;
+
         GraphInfo new_info = tmp.calcInfo();
         
         // cout << "[Log] cnt = "<< cnt << ", new : = " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;

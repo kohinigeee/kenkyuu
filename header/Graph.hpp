@@ -15,6 +15,7 @@
 #include<random>
 #include<map>
 #include<algorithm>
+#include<thread>
 
 using graph_info_t = map<string, long long>;
 
@@ -701,6 +702,10 @@ BfsResult Graph::bfs( int node_no , const long long empv = -1 ) {
     return BfsResult(node_no, d, path, tnodes, edge_scores);
 }
 
+void th_bfs(Graph& graph, BfsResult& result , int node_no ) {
+    result = graph.bfs(node_no);
+}
+
 //ある頂点ペアの最短パスを抜き出す
 //[注意]すべてのGraphPartのスイッチ数が均等なこと前提
 vector<pair<Edge,Edge>> Graph::takePath( int st, int end ) {
@@ -731,28 +736,56 @@ vector<pair<Edge,Edge>> Graph::takePath( int st, int end ) {
     return ans;
 }
 
+
 GraphResult Graph::calcBFS( const long long empv = -1 ) {
     vector<vector<long long>> d;
     map<pair<Edge,Edge>, long long> edge_scores;
     vector<PathTree> trees;
+    vector<BfsResult> bfsresults(s);
+    
+    vector<thread> ths;
+    for ( int i = 0; i < s; ++i ) {
+        int tmp = i;
+        ths.push_back(thread(th_bfs, ref(*this), ref(bfsresults[i]), i));
+    }
 
     for ( int i = 0; i < s; ++i ) {
-        BfsResult bresult = bfs(i, empv);
-        d.push_back(bresult.get_d());
+        ths[i].join();
+    } 
 
+    for ( int i = 0; i < s; ++i ) {
+        BfsResult bresult = bfsresults[i];
+        d.push_back(bresult.get_d());
         for ( auto p : bresult.get_scores() ) {
             edge_scores[p.first] += p.second;
         } 
-
         trees.push_back(PathTree(i, bresult.get_tnodes()));
     }
     GraphResult ans = GraphResult(d, edge_scores, trees);
     return ans;
 }
 
+// GraphResult Graph::calcBFS( const long long empv = -1 ) {
+//     vector<vector<long long>> d;
+//     map<pair<Edge,Edge>, long long> edge_scores;
+//     vector<PathTree> trees;
+//     for ( int i = 0; i < s; ++i ) {
+//         BfsResult bresult = bfs(i, empv);
+//         d.push_back(bresult.get_d());
+
+//         for ( auto p : bresult.get_scores() ) {
+//             edge_scores[p.first] += p.second;
+//         } 
+
+//         trees.push_back(PathTree(i, bresult.get_tnodes()));
+//     }
+//     GraphResult ans = GraphResult(d, edge_scores, trees);
+//     return ans;
+// }
+
 // GraphResult Graph::calcBFS( const long long empv = -1) {
 //     //距離行列
-    // vector<vector<long long>> d(g*s, vector<long long>(g*s, empv));
+//     vector<vector<long long>> d(g*s, vector<long long>(g*s, empv));
 //     //各辺の重要度
 //     map<pair<Edge,Edge>, long long> edge_scores;
 

@@ -1,0 +1,145 @@
+s: 40, h: 32, r:4
+Type Name: initil graph
+diam: 9, haspl: 5.70161, time: -1.00
+Type Name: hillclimb
+diam: 7, haspl: 5.07863, time: 15.70
+Type Name: divide with problem
+diam: 9, haspl: 5.74798, time: 0.05
+Type Name: divide normal
+diam: 10, haspl: 6.35484, time: 0.04
+
+s: 40, h: 80, r:6
+Type Name: initil graph
+diam: 8, haspl: 4.90127, time: -1.00
+Type Name: hillclimb
+diam: 6, haspl: 4.59462, time: 40.74
+Type Name: divide with problem
+diam: 7, haspl: 5.01519, time: 0.12
+Type Name: divide normal
+diam: 9, haspl: 5.49304, time: 0.11
+
+s: 12, h: 128, r:24
+Type Name: initil graph
+diam: 4, haspl: 3.15157, time: -1.00
+Type Name: hillclimb
+diam: 3, haspl: 2.94205, time: 6.01
+Type Name: divide with problem
+diam: 5, haspl: 3.48474, time: 0.08
+Type Name: divide normal
+diam: 5, haspl: 3.49963, time: 0.07
+
+s: 90, h: 432, r:12
+Type Name: initil graph
+diam: 6, haspl: 4.51581, time: -1.00
+Type Name: hillclimb
+diam: 5, haspl: 4.34204, time: 1801.05
+Type Name: divide with problem
+diam: 7, haspl: 4.77125, time: 6.75
+Type Name: divide normal
+diam: 7, haspl: 4.90963, time: 4.25
+
+s: 110, h: 1281, r:21
+Type Name: initil graph
+diam: 6, haspl: 4.35386, time: -1.00
+Type Name: hillclimb
+diam: 5, haspl: 4.18232, time: 1801.08
+Type Name: divide with problem
+diam: 6, haspl: 4.64967, time: 39.35
+Type Name: divide normal
+diam: 7, haspl: 4.68119, time: 25.42
+
+s: 1280, h: 1021, r:5
+Type Name: initil graph
+diam: 10, haspl: 7.69224, time: -1.00
+Type Name: hillclimb
+diam: 10, haspl: 7.66401, time: 1810.70
+Type Name: divide with problem
+diam: 11, haspl: 7.89342, time: 2132.22
+Type Name: divide normal
+diam: 23, haspl: 14.43871, time: 783.84
+
+s: 350, h: 1024, r:10
+Type Name: initil graph
+diam: 7, haspl: 5.25467, time: -1.00
+Type Name: hillclimb
+diam: 7, haspl: 5.17363, time: 1801.67
+Type Name: divide with problem
+diam: 8, haspl: 5.58333, time: 349.36
+Type Name: divide normal
+diam: 13, haspl: 8.67688, time: 130.29
+
+s: 330, h: 3800, r:30
+Type Name: initil graph
+diam: 5, haspl: 4.29314, time: -1.00
+Type Name: hillclimb
+diam: 5, haspl: 4.22300, time: 1801.70
+Type Name: divide with problem
+diam: 6, haspl: 4.74824, time: 2042.29
+Type Name: divide normal
+diam: 6, haspl: 4.75984, time: 863.85
+
+
+second Exeception
+s: 40, h: 32, r:4
+Type Name: initil graph
+diam: 9, haspl: 5.70161, time: -1.00
+Type Name: hillclimb
+diam: 7, haspl: 5.07863, time: 13.53
+Type Name: divide with problem
+diam: 10, haspl: 5.95968, time: 0.10
+Type Name: divide normal
+diam: 10, haspl: 6.35484, time: 0.08
+
+s: 40, h: 80, r:6
+Type Name: initil graph
+diam: 8, haspl: 4.90127, time: -1.00
+Type Name: hillclimb
+diam: 6, haspl: 4.59462, time: 32.02
+Type Name: divide with problem
+diam: 7, haspl: 4.93070, time: 0.21
+Type Name: divide normal
+diam: 9, haspl: 5.49304, time: 0.21
+
+s: 12, h: 128, r:24
+Type Name: initil graph
+diam: 4, haspl: 3.15157, time: -1.00
+Type Name: hillclimb
+diam: 3, haspl: 2.94205, time: 7.26
+Type Name: divide with problem
+diam: 5, haspl: 3.48474, time: 0.17
+Type Name: divide normal
+diam: 5, haspl: 3.49963, time: 0.18
+
+s: 90, h: 432, r:12
+Type Name: initil graph
+diam: 6, haspl: 4.51581, time: -1.00
+Type Name: hillclimb
+diam: 5, haspl: 4.34123, time: 1801.05
+Type Name: divide with problem
+diam: 7, haspl: 4.77125, time: 9.00
+Type Name: divide normal
+diam: 7, haspl: 4.90963, time: 6.67
+
+s: 110, h: 1281, r:21
+Type Name: initil graph
+diam: 6, haspl: 4.35386, time: -1.00
+Type Name: hillclimb
+diam: 5, haspl: 4.17906, time: 1801.06
+Type Name: divide with problem
+diam: 6, haspl: 4.64967, time: 39.09
+Type Name: divide normal
+diam: 7, haspl: 4.68119, time: 30.54
+
+s: 1280, h: 1024, r:5
+Type Name: initil graph
+diam: 10, haspl: 7.69751, time: -1.00
+Type Name: hillclimb
+diam: 10, haspl: 7.66179, time: 1813.04
+Type Name: divide with problem
+diam: 12, haspl: 8.10903, time: 2007.38
+Type Name: divide normal
+diam: 23, haspl: 14.37250, time: 654.58
+
+s: 350, h: 1024, r:10
+Type Name: initil graph
+diam: 7, haspl: 5.26544, time: -1.00

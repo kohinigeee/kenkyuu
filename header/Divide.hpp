@@ -4,6 +4,7 @@
 #include<vector>
 #include<cmath>
 #include<map>
+#include<algorithm>
 
 using namespace std;
 
@@ -92,7 +93,7 @@ divideInfo divideInfo::makeDivide ( const int s, const int h, const int r ) {
 //ports: (nr-n)をt:1-tの割合で振り分け( t : グループで使用するポートの割合) 
 divideInfo divideInfo::makeDivide_ports( const int s, const int h, const int r ) {
     vector<int> nodes, hosts, ports;
-    double t = 0.5; 
+    double t = 0.8; //ポートの振り分け率
 
     int groups = sqrt(s);
     if ( groups*groups < s ) ++groups;
@@ -108,7 +109,7 @@ divideInfo divideInfo::makeDivide_ports( const int s, const int h, const int r )
 
     ports = vector<int>(groups, -1);
     for ( int i = 0; i < groups; ++i ) {
-        ports[i] = (nodes[i]*r-hosts[i]-nodes[i])*t;
+        ports[i] = (nodes[i]*r-hosts[i]-2*nodes[i])*t;
     }
 
     for ( int i = 0; i < groups; ++i ) {
@@ -153,7 +154,8 @@ vector<int> divideHosts(const int r, const int h, const vector<int>& nodes )  {
 
     vector<int> ans;
     pair<int,int> best_hsize = make_pair(-1,-1);
-    Rational bestratio = Rational((1LL<<60), 1);
+    // Rational bestratio = Rational((1LL<<60), 1);
+    double bestratio = (1LL<<60);
     
     for ( int i = 0; i <= h; ++i ) {
         pair<int,int> h_size = make_pair(i, h-i);
@@ -163,15 +165,20 @@ vector<int> divideHosts(const int r, const int h, const vector<int>& nodes )  {
         int noOfGropus2 = spe_nodes[1].second;
 
         int amari = ( h_size.first%noOfGroups1 == 0 ) ? 0 : 1;
-        Rational min1 = Rational(h_size.first/noOfGroups1, noOfNodes1*r);
-        Rational max1 = Rational(h_size.first/noOfGroups1+amari, noOfNodes1*r);
+        // Rational min1 = Rational(h_size.first/noOfGroups1, noOfNodes1*r);
+        // Rational max1 = Rational(h_size.first/noOfGroups1+amari, noOfNodes1*r);
+        double min1 = (double)(h_size.first/noOfGroups1)/noOfNodes1*r;
+        double max1 = (double)(h_size.first/noOfGroups1+amari)/noOfNodes1*r;
 
         amari = ( h_size.second%noOfGropus2 == 0 ) ? 0 : 1;
-        Rational min2 = Rational(h_size.second/noOfGropus2, noOfNodes2*r);
-        Rational max2 = Rational(h_size.second/noOfGropus2+amari, noOfNodes2*r);
+        // Rational min2 = Rational(h_size.second/noOfGropus2, noOfNodes2*r);
+        // Rational max2 = Rational(h_size.second/noOfGropus2+amari, noOfNodes2*r);
+        double min2 = double(h_size.second/noOfGropus2)/(noOfGropus2*r);
+        double max2 = double(h_size.second/noOfGropus2+amari)/(noOfGropus2*r);
 
-        Rational tmp = max(max1, max2)-min(min1, min2);
+        // Rational tmp = max(max1, max2)-min(min1, min2);
 
+        double tmp = max(max1, max2)-min(min1, min2);
         // cout << endl;
         // cout << "h_size.second = " << h_size.second << ", " << "noOfGroups2 = " << noOfGropus2 << endl;
         // cout << "amari = " << amari << endl;

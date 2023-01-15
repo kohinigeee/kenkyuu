@@ -12,6 +12,8 @@
 
 using namespace std;
 
+long long limt_time = 60*20;
+
 mutex mx;
 
 void output(string, ClimbParams&, vector<Results>&);
@@ -183,7 +185,7 @@ void exp_directhillclimb(vector<Results>& results, string name, int s, ClimbPara
         Graph::set_seed(seed_gen());
         mt19937 mt; mt.seed(seed_gen());
         Graph graph = Graph::make(s, params.h, params.r, 1);
-        Graph best = directHillclimbWithKick(graph, mt, params.limt, directHillclimb_once_2);
+        Graph best = directHillclimbWithKick(graph, mt, params.limt, directHillclimb_once_2, limt_time);
 
         mx.lock();
         results[idx].add_result(best); 
@@ -254,8 +256,8 @@ void output(string name, ClimbParams& params, vector<Results>& results ) {
 
 void exp_func(string path, ClimbParams params) {
     do_hillclimb(path, params);
-    do_direct1(path, params);
-    do_direct2(path, params);
+    // do_direct1(path, params);
+    // do_direct2(path, params);
     do_directhillclimb(path, params);
 }
 
@@ -268,6 +270,8 @@ int main()
     debug_off();
     annealing_log_off_all();
 
+    set_hill_limt_time(60*20);
+
     const int seed = 384;
     const int limt = 10;
     const int exe = 1;
@@ -277,18 +281,18 @@ int main()
     mt.seed(seed);
 
     vector<string> paths;
-    // paths.push_back("h32_r4");
+    paths.push_back("h32_r4");
     // paths.push_back("h80_r6");
     // paths.push_back("h128_r24");
-    paths.push_back("h432_r12");
+    // paths.push_back("h432_r12");
     // paths.push_back("h1281_r21");
     // paths.push_back("h1024_r5");
 
     vector<ClimbParams> params;
-    // params.push_back(ClimbParams(25, 15, 32, 4, limt, exe, mt(), alpha));
+    params.push_back(ClimbParams(35, 10, 32, 4, limt, exe, mt(), alpha));
     // params.push_back(ClimbParams(42, 1, 80, 6, limt, exe, mt(), alpha));
     // params.push_back(ClimbParams(7, 10, 128, 24, limt, exe, mt(), alpha));
-    params.push_back(ClimbParams(50, 20, 432, 12, limt, exe, mt(), alpha));
+    // params.push_back(ClimbParams(50, 20, 432, 12, limt, exe, mt(), alpha));
     // params.push_back(ClimbParams(75, 35, 1281, 21, limt, exe, mt(), alpha));
     // params.push_back(ClimbParams(750, 1, 1024, 5, limt, exe, mt(), alpha));
 
