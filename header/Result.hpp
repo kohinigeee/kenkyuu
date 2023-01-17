@@ -8,8 +8,25 @@
 
 #include"Graph.hpp"
 #define RESULT_INF (1LL<<60)
+#define NO_HISTORY -1
+#define ON_HISTORY 1
 
 using namespace std;
+
+class History {
+    public:
+
+    int status;
+    vector<pair<int, double>> values;
+
+    History( int sta ) : status(sta) {}
+
+    void add(pair<int,double> p ) { 
+        if ( status == NO_HISTORY ) return;
+        values.push_back(p); }
+};
+
+History defo_history(NO_HISTORY);
 
 class Results {
     int cnt;

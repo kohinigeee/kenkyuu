@@ -143,3 +143,30 @@ diam: 23, haspl: 14.37250, time: 654.58
 s: 350, h: 1024, r:10
 Type Name: initil graph
 diam: 7, haspl: 5.26544, time: -1.00
+Type Name: hillclimb
+diam: 7, haspl: 5.17287, time: 1801.59
+Type Name: divide with problem
+diam: 8, haspl: 5.92954, time: 386.79
+Type Name: divide normal
+diam: 13, haspl: 8.28874, time: 129.98
+
+s: 280, h: 4608, r:36
+Type Name: initil graph
+diam: 5, haspl: 4.18545, time: -1.00
+Type Name: hillclimb
+diam: 5, haspl: 4.09312, time: 1801.68
+Type Name: divide with problem
+diam: 20, haspl: 11.49640, time: 1934.61
+Type Name: divide normal
+diam: 6, haspl: 4.68178, time: 1010.76
+
+s: 440, h: 8208, r:48
+Type Name: initil graph
+diam: 5, haspl: 4.07295, time: -1.00
+Type Name: hillclimb
+diam: 5, haspl: 4.04586, time: 1802.63
+Type Name: divide with problem
+diam: 6, haspl: 4.67584, time: 3099.86
+Type Name: divide normal
+diam: 7, haspl: 5.15102, time: 7303.31
+

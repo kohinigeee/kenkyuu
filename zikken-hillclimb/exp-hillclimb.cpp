@@ -12,7 +12,7 @@
 
 using namespace std;
 
-long long limt_time = 60*20;
+long long limt_time = -1;
 
 mutex mx;
 
@@ -270,39 +270,42 @@ int main()
     debug_off();
     annealing_log_off_all();
 
-    set_hill_limt_time(60*20);
+    // set_hill_limt_time(60*20);
 
-    const int seed = 384;
+    const int seed = 2847;
     const int limt = 10;
-    const int exe = 1;
-    double alpha = 0.3;
+    const int exe = 3;
+    double alpha = 0.5;
 
     mt19937 mt;
     mt.seed(seed);
 
     vector<string> paths;
-    paths.push_back("h32_r4");
-    // paths.push_back("h80_r6");
-    // paths.push_back("h128_r24");
+    // paths.push_back("h32_r4");
+    paths.push_back("h80_r6");
+    paths.push_back("h128_r24");
     // paths.push_back("h432_r12");
     // paths.push_back("h1281_r21");
     // paths.push_back("h1024_r5");
 
     vector<ClimbParams> params;
-    params.push_back(ClimbParams(35, 10, 32, 4, limt, exe, mt(), alpha));
-    // params.push_back(ClimbParams(42, 1, 80, 6, limt, exe, mt(), alpha));
-    // params.push_back(ClimbParams(7, 10, 128, 24, limt, exe, mt(), alpha));
-    // params.push_back(ClimbParams(50, 20, 432, 12, limt, exe, mt(), alpha));
+    // params.push_back(ClimbParams(28, 10, 32, 4, limt, exe, mt(), alpha));
+    params.push_back(ClimbParams(35, 10, 80, 6, limt, exe, mt(), alpha));
+    params.push_back(ClimbParams(7, 10, 128, 24, limt, exe, mt(), alpha));
+    // params.push_back(ClimbParams(80, 10, 432, 12, limt, exe, mt(), alpha));
     // params.push_back(ClimbParams(75, 35, 1281, 21, limt, exe, mt(), alpha));
     // params.push_back(ClimbParams(750, 1, 1024, 5, limt, exe, mt(), alpha));
 
     map<string, thread> ths;
 
-    for ( int i = 0; i < paths.size(); ++i ) {
-        ths[paths[i]] = thread(exp_func, paths[i], params[i]);
-    }
+    // for ( int i = 0; i < paths.size(); ++i ) {
+    //     ths[paths[i]] = thread(exp_func, paths[i], params[i]);
+    // }
 
-    for ( auto& p : ths ) p.second.join();
+    // for ( auto& p : ths ) p.second.join();
+    for ( int i = 0; i < paths.size(); ++i ) {
+        exp_func(paths[i], params[i]);
+    }
 
     cout << "All finished" << endl;
     return 0;

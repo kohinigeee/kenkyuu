@@ -52,7 +52,7 @@ map<pair<Edge,Edge>, long long> makeEdgeScoresWithPathTrees( Graph& graph, vecto
 //種数1前提
 //戻り値: 更新が行われたか
 //edge_scores: makeEdgeScoreWithPathTree
-bool directHillclimb_once_2(Graph& graph, long long st_time = 0, long long limt_time = -1 ) {
+bool directHillclimb_once_2(Graph& graph, long long st_time = 0, long long limt_time = -1, History& his = defo_history ) {
 
     GraphResult result = graph.calcBFS();
     GraphInfo info = graph.calcInfo(result);
@@ -127,7 +127,7 @@ bool directHillclimb_once_2(Graph& graph, long long st_time = 0, long long limt_
             for ( Edge swEdge : edges ) {
                 time_t now = clock();
                 long long dura = double(now-time_start)/CLOCKS_PER_SEC;
-                if( limt_time > 0 && dura+st_time >= limt_time ) return false;
+                // if( limt_time > 0 && dura+st_time >= limt_time ) return false;
 
                 Graph tmp = graph;
 
@@ -152,7 +152,12 @@ bool directHillclimb_once_2(Graph& graph, long long st_time = 0, long long limt_
                     graph = tmp;
                     isUpdated = true;
                     isContinue = true;
+
+                    his.add(p2);
                     break;
+                } else {
+                    // his.add(make_pair(-1,-1));
+                    his.add(his.values.back()); 
                 }
             }
             if ( isContinue ) break;
@@ -167,7 +172,7 @@ bool directHillclimb_once_2(Graph& graph, long long st_time = 0, long long limt_
 
 //種数1前提
 //戻り値: 更新が行われたか
-bool directHillclimb_once(Graph& graph, long long st_time = 0, long long limt_time = -1) {
+bool directHillclimb_once(Graph& graph, long long st_time = 0, long long limt_time = -1, History& his = defo_history) {
 
     GraphResult result = graph.calcBFS();
     GraphInfo info = graph.calcInfo(result);
@@ -270,8 +275,11 @@ bool directHillclimb_once(Graph& graph, long long st_time = 0, long long limt_ti
                     graph = tmp;
                     isUpdated = true;
                     isContinue = true;
-
+                    
+                    his.add(p2);
                     break;
+                } else {
+                    his.add(his.values.back());
                 }
             }
             if ( isContinue ) break;
@@ -307,9 +315,9 @@ Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHill
             time_t time_now = clock();
             long long dura = double(time_now-time_start)/CLOCKS_PER_SEC;
             spnet_time += dura;
-            if ( limt_time > 0 && spnet_time+st_time >= limt_time ){
-                return graph;
-            }
+            // if ( limt_time > 0 && spnet_time+st_time >= limt_time ){
+            //     return graph;
+            // }
 
             // cout << "cnt = " << cnt << endl;
             pair<Edge,Edge> pe = select_edges_noraml(graph, mt); 
@@ -367,7 +375,7 @@ Graph directHillclimbWithKick( Graph& graph_given, mt19937& mt, int limcnt, dire
         time_t time_now = clock();
         long long dura = double(time_now-time_start)/CLOCKS_PER_SEC;
         spent_time += dura;
-        if ( limt_time > 0 && spent_time + st_time >= limt_time ) return best_graph;
+        // if ( limt_time > 0 && spent_time + st_time >= limt_time ) return best_graph;
         // cout << "[Log] spent time = " << spent_time << endl;
 
         GraphInfo new_info = tmp.calcInfo();

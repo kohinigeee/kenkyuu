@@ -108,14 +108,14 @@ int main()
 
     mt19937 mt;
     mt.seed(seed);
-    func(path, 40, 32, 4, mt);
-    func(path, 40, 80, 6, mt);
-    func(path, 12, 128, 24, mt);
-    func(path, 90, 432, 12, mt);
-    func(path, 110, 1281, 21, mt);
-    func(path, 1280, 1024, 5, mt);
-    func(path, 350, 1024, 10, mt);
-    func(path, 330, 3800, 30, mt);
+    // func(path, 40, 32, 4, mt);
+    // func(path, 40, 80, 6, mt);
+    // func(path, 12, 128, 24, mt);
+    // func(path, 90, 432, 12, mt);
+    // func(path, 110, 1281, 21, mt);
+    // func(path, 1280, 1024, 5, mt);
+    // func(path, 350, 1024, 10, mt);
+    // func(path, 330, 3800, 30, mt);
     func(path, 280, 4608, 36, mt);
     func(path, 440, 8208, 48, mt);
     // func(path, 5100, 10000, 10, mt);

@@ -1,0 +1,47 @@
+Type Name: h128_r24/direct1_128_24
+start_s 7 range 10 h 128 r 24
+seed -694300956 kick_limit 10 exe 1 alpha 0.30
+
+[Result] s=7
+avg_diam 4.00000 avg_haspl 3.22306
+best 4 3.22306
+
+[Result] s=8
+avg_diam 4.00000 avg_haspl 3.19685
+best 4 3.19685
+
+[Result] s=9
+avg_diam 4.00000 avg_haspl 3.12537
+best 4 3.12537
+
+[Result] s=10
+avg_diam 4.00000 avg_haspl 3.18319
+best 4 3.18319
+
+[Result] s=11
+avg_diam 4.00000 avg_haspl 3.28285
+best 4 3.28285
+
+[Result] s=12
+avg_diam 4.00000 avg_haspl 3.17864
+best 4 3.17864
+
+[Result] s=13
+avg_diam 4.00000 avg_haspl 3.21272
+best 4 3.21272
+
+[Result] s=14
+avg_diam 4.00000 avg_haspl 3.22527
+best 4 3.22527
+
+[Result] s=15
+avg_diam 4.00000 avg_haspl 3.25726
+best 4 3.25726
+
+[Result] s=16
+avg_diam 4.00000 avg_haspl 3.29134
+best 4 3.29134
+
+[Result] s=17
+avg_diam 4.00000 avg_haspl 3.36196
+best 4 3.36196

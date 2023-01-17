@@ -1,0 +1,11 @@
+Type Name: h80_r6/direct2_80_6
+start_s 42 range 1 h 80 r 6
+seed -1216542307 kick_limit 20 exe 1 alpha 0.80
+
+[Result] s=42
+avg_diam 6.00000 avg_haspl 4.58892
+best 6 4.58892
+
+[Result] s=43
+avg_diam 6.00000 avg_haspl 4.57247
+best 6 4.57247

@@ -1,0 +1,47 @@
+Type Name: h432_r12/directhillclimb_432_12
+start_s 80 range 10 h 432 r 12
+seed 1865666930 kick_limit 10 exe 1 alpha 0.50
+
+[Result] s=80
+avg_diam 6.00000 avg_haspl 4.42981
+best 6 4.42981
+
+[Result] s=81
+avg_diam 6.00000 avg_haspl 4.42318
+best 6 4.42318
+
+[Result] s=82
+avg_diam 6.00000 avg_haspl 4.43263
+best 6 4.43263
+
+[Result] s=83
+avg_diam 6.00000 avg_haspl 4.43520
+best 6 4.43520
+
+[Result] s=84
+avg_diam 5.00000 avg_haspl 4.42008
+best 5 4.42008
+
+[Result] s=85
+avg_diam 5.00000 avg_haspl 4.42447
+best 5 4.42447
+
+[Result] s=86
+avg_diam 6.00000 avg_haspl 4.43429
+best 6 4.43429
+
+[Result] s=87
+avg_diam 6.00000 avg_haspl 4.43810
+best 6 4.43810
+
+[Result] s=88
+avg_diam 6.00000 avg_haspl 4.43613
+best 6 4.43613
+
+[Result] s=89
+avg_diam 6.00000 avg_haspl 4.42255
+best 6 4.42255
+
+[Result] s=90
+avg_diam 6.00000 avg_haspl 4.44313
+best 6 4.44313

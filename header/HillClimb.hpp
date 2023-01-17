@@ -6,6 +6,9 @@
 #include "Graph.hpp"
 #include "Annealing.hpp"
 #include "MDST.hpp"
+#include "Result.hpp"
+
+//履歴用
 
 using hillclimb_func = Graph(*)(Graph&, const int n, const int seed, select_func);
 int hill_limt_eval = -1;
@@ -46,7 +49,7 @@ long long countEdges(Graph& graph) {
     return ans*(ans-1)/2;
 }
 
-Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edge>(*select)(Graph&,mt19937&), long long start_time = 0) {
+Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edge>(*select)(Graph&,mt19937&), long long start_time = 0, History& history = defo_history ) {
     const long long limn = countEdges(graph)*alpha;
     const time_t st_t = clock();
     
@@ -105,9 +108,14 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
             best_info = new_info;
             best = graph;
             limcnt = 0;
+            
+            history.add(make_pair(new_info.get_diam(), new_info.get_haspl()));
         } else {
             graph.back();
             ++limcnt;
+            
+            // history.add(make_pair(new_info.get_diam(), new_info.get_haspl()));
+            history.add(history.values.back());
         }
     }
     return best;

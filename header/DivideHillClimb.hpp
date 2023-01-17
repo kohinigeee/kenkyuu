@@ -8,7 +8,7 @@
 
 using namespace std;
 
-using divideHillclimb_func = Graph(*)(Graph&, const double alpha, const int seed, select_func, long long st_time );
+using divideHillclimb_func = Graph(*)(Graph&, const double alpha, const int seed, select_func, long long st_time, History&);
 
 //分割山登り法
 //@dinfo: 分割時の各グループの情報
@@ -35,7 +35,7 @@ Graph divideHillClimb( const divideInfo& dinfo, const double alpha, const int se
         // graph.print("Under_" + to_string(i));
 
 
-        Graph best = hillclimb(graph, alpha, mt(), select, 0 );
+        Graph best = hillclimb(graph, alpha, mt(), select, 0, defo_history);
         gps.push_back(best.getPart(G_no(0)));
 
         //Log
@@ -43,7 +43,7 @@ Graph divideHillClimb( const divideInfo& dinfo, const double alpha, const int se
     }
     
     Graph upper = makeUpperGraph(dinfo.ports, r, frees);
-    Graph best = hillclimb(upper, alpha, mt(), select, 0);
+    Graph best = hillclimb(upper, alpha, mt(), select, 0, defo_history);
 
     // best.print();
     // cout << "finished makeUpperGraph" << endl;
