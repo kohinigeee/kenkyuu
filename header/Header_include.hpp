@@ -17,5 +17,6 @@
 #include "HillClimb.hpp"
 #include "DivideHillClimb.hpp"
 #include "DirectHillclimb.hpp"
+#include "GraphResult.hpp"
 
 #endif

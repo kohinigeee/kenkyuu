@@ -10,7 +10,9 @@
 #include "HillClimb.hpp"
 
 using namespace std;
-using directHillclimbMethod_t = bool(*) (Graph& graph, long long st_time, long long limt_time);
+using directHillclimbMethod_t = bool(*) (Graph& graph, long long st_time, long long limt_time, History& his, set<pair<Edge,Edge>>& calced);
+
+set<pair<Edge,Edge>> defo_set;
 
 Edge takeHostEdge(Graph& graph, G_no g_no, Node_no node_no) {
     Switch sw = graph.getSwitch(g_no, node_no);
@@ -139,14 +141,13 @@ bool directHillclimb_once_2(Graph& graph, long long st_time = 0, long long limt_
                 //不連結は除外
                 if ( !tmp.isLinking() ) continue;
 
-                GraphResult new_result = tmp.calcBFS();
-                GraphInfo new_info = tmp.calcInfo(new_result);
-
                 pair<long long, double> p1 = make_pair(info.get_diam(), info.get_haspl()),
-                                        p2 = make_pair(new_info.get_diam(), new_info.get_haspl());
+                                        p2 = tmp.calc_haspl();
             
                 if ( p2 < p1 ) {
                     // cout << "[Log] new: " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;
+                    GraphResult new_result = tmp.calcBFS();
+                    GraphInfo new_info = tmp.calcInfo(result);
                     result = new_result;
                     info = new_info;
                     graph = tmp;
@@ -159,6 +160,7 @@ bool directHillclimb_once_2(Graph& graph, long long st_time = 0, long long limt_
                     // his.add(make_pair(-1,-1));
                     his.add(his.values.back()); 
                 }
+                if ( max_hill_length > 0 && max_hill_length < his.values.size() ) return isUpdated;
             }
             if ( isContinue ) break;
             }
@@ -172,17 +174,16 @@ bool directHillclimb_once_2(Graph& graph, long long st_time = 0, long long limt_
 
 //種数1前提
 //戻り値: 更新が行われたか
-bool directHillclimb_once(Graph& graph, long long st_time = 0, long long limt_time = -1, History& his = defo_history) {
+bool directHillclimb_once(Graph& graph, long long st_time = 0, long long limt_time = -1, History& his = defo_history, set<pair<Edge,Edge>>& calced = defo_set) {
 
     GraphResult result = graph.calcBFS();
     GraphInfo info = graph.calcInfo(result);
     bool isUpdated = false;
 
     time_t time_start = clock();
-
     while(1) {
         bool isContinue = false;
-        set<pair<Edge,Edge>> isCalced; //計算済みのエッジペアを保存
+        calced.clear();
 
         vector<pair<int, int>> pairs = info.get_pairs();
 
@@ -244,7 +245,7 @@ bool directHillclimb_once(Graph& graph, long long st_time = 0, long long limt_ti
             //即時移動戦略
 
             for ( Edge swEdge : edges ) {
-
+                
                 time_t now = clock();
                 long long dura = double(now-time_start)/CLOCKS_PER_SEC;
                 if( limt_time > 0 && dura+st_time >= limt_time ) return false;
@@ -252,26 +253,24 @@ bool directHillclimb_once(Graph& graph, long long st_time = 0, long long limt_ti
                 Graph tmp = graph;
 
                 pair<Edge,Edge> pe = makeEdgePair(swEdge, hostEdge);
-                if ( isCalced.find(pe) != isCalced.end() ) continue;
-                isCalced.insert(pe);
+                if ( calced.find(pe) != calced.end() ) continue;
+                calced.insert(pe);
 
                 tmp.simple_swing(swEdge, hostEdge);
                 //不連結は除外
                 if ( !tmp.isLinking() ) continue;
 
-                GraphResult new_result = tmp.calcBFS();
-                GraphInfo new_info = tmp.calcInfo(new_result);
 
                 pair<long long, double> p1 = make_pair(info.get_diam(), info.get_haspl()),
-                                        p2 = make_pair(new_info.get_diam(), new_info.get_haspl());
+                                        p2 = tmp.calc_haspl();
             
                 if ( p2 < p1 ) {
                     // char buff[256];
                     // sprintf(buff, "DirectOnce1::[Log] s=%d, h=%d, r=%d : new=%d, %.5lf  prev=%d, %.5lf\n", graph.getSum_s(), graph.getSum_h(), graph.get_r(), new_info.get_diam(), new_info.get_haspl(), info.get_diam(), info.get_haspl());
                     // cout << buff << flush;
 
-                    result = new_result;
-                    info = new_info;
+                    result = tmp.calcBFS();
+                    info = tmp.calcInfo(result);
                     graph = tmp;
                     isUpdated = true;
                     isContinue = true;
@@ -281,6 +280,7 @@ bool directHillclimb_once(Graph& graph, long long st_time = 0, long long limt_ti
                 } else {
                     his.add(his.values.back());
                 }
+                if ( max_hill_length > 0 && max_hill_length < his.values.size() ) return isUpdated;
             }
             if ( isContinue ) break;
             }
@@ -293,22 +293,22 @@ bool directHillclimb_once(Graph& graph, long long st_time = 0, long long limt_ti
 }
 
 //指向性山登り+ランダム選択山登り
-Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHillclimbMethod_t dmethod, long long limt_time = -1, long long st_time = 0 ) {
+Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHillclimbMethod_t dmethod, long long limt_time = -1, long long st_time = 0, History& his = defo_history ) {
     Graph graph = graph_given;
-    set<pair<Edge,Edge>> iscalced;
     int cnt = 0;
     long long spnet_time = 0;
     time_t time_start;
 
     while(1) {
         time_start = clock();
-        if ( dmethod(graph, spnet_time, limt_time) ) continue;
+        set<pair<Edge,Edge>> calced;
+        if ( dmethod(graph, spnet_time, limt_time, his, calced) ) continue;
         time_t time_now = clock();
         long long dura = double(time_now-time_start)/CLOCKS_PER_SEC;
         spnet_time += dura;
  
         long long limt = alpha*countEdges(graph); 
-        GraphInfo info = graph.calcInfo();
+        pair<int, double> res = graph.calc_haspl();
         long long cnt = 0;
         while( cnt < limt ) {
             
@@ -322,11 +322,11 @@ Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHill
             // cout << "cnt = " << cnt << endl;
             pair<Edge,Edge> pe = select_edges_noraml(graph, mt); 
 
-            if ( iscalced.find(pe) != iscalced.end() ) {
+            if ( calced.find(pe) != calced.end() ) {
                 ++cnt;
                 continue;
             }
-            iscalced.insert(pe);
+            calced.insert(pe);
 
             graph.simple_swing(pe.first, pe.second);
             if ( !(graph.isLinking() ) ) {
@@ -335,12 +335,15 @@ Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHill
                 continue;
             } 
 
-            GraphInfo new_info = graph.calcInfo();
-            if ( compInfo(new_info, info) ) {
+            pair<int, double> new_res = graph.calc_haspl();
+
+            if (  new_res < res ) {
+                his.add((new_res));
                 break;
             } else {
                 graph.back();
                 ++cnt;
+                his.add(his.values.back());
             }
         }
 
@@ -355,9 +358,10 @@ Graph directHillclimb( Graph& graph_given, mt19937& mt, double alpha, directHill
 
 //dmethod : 指向性山登りのメソッド ( direct_hilcllimb_once or ~_once2 )
 //limcnt : 未更新回数の限界値
-Graph directHillclimbWithKick( Graph& graph_given, mt19937& mt, int limcnt, directHillclimbMethod_t dmethod, long long limt_time = -1, long long st_time = 0 ) {
+Graph directHillclimbWithKick( Graph& graph_given, mt19937& mt, int limcnt, directHillclimbMethod_t dmethod, long long limt_time = -1, long long st_time = 0, History& his=defo_history) {
     Graph best_graph = graph_given;
-    GraphInfo best_info = best_graph.calcInfo();
+    // GraphInfo best_info = best_graph.calcInfo();
+    pair<int, double> best_info = best_graph.calc_haspl();
     int cnt = 0;
     double alpha = 0.8;
     Graph graph = best_graph;
@@ -369,21 +373,26 @@ Graph directHillclimbWithKick( Graph& graph_given, mt19937& mt, int limcnt, dire
     long long spent_time = 0;
 
     while( cnt < limcnt ) {
-        
+
+        // GraphInfo info = graph.calcInfo();
+        // pair<int, double> info = graph.calc_haspl();
+        // his.add(info);
+
         time_t time_start = clock();
-        Graph tmp = directHillclimb(graph, mt, alpha, dmethod, limcnt, spent_time);
+        Graph tmp = directHillclimb(graph, mt, alpha, dmethod, limcnt, spent_time, his);
         time_t time_now = clock();
         long long dura = double(time_now-time_start)/CLOCKS_PER_SEC;
         spent_time += dura;
         // if ( limt_time > 0 && spent_time + st_time >= limt_time ) return best_graph;
         // cout << "[Log] spent time = " << spent_time << endl;
 
-        GraphInfo new_info = tmp.calcInfo();
+        // GraphInfo new_info = tmp.calcInfo();
+        pair<int, double> new_info = tmp.calc_haspl();
         
         // cout << "[Log] cnt = "<< cnt << ", new : = " << new_info.get_diam() << ", " << new_info.get_haspl() << endl;
-        if ( compInfo(new_info, best_info) ) {
+        if ( new_info < best_info ) {
             char buff[256]; 
-            sprintf(buff, "DirectOnce1::[Log] s=%d, h=%d, r=%d : new=%d, %.5lf  prev=%d, %.5lf\n", graph.getSum_s(), graph.getSum_h(), graph.get_r(), new_info.get_diam(), new_info.get_haspl(), best_info.get_diam(), best_info.get_haspl());
+            sprintf(buff, "DirectOnce1::[Log] s=%d, h=%d, r=%d : new=%d, %.5lf  prev=%d, %.5lf\n", graph.getSum_s(), graph.getSum_h(), graph.get_r(), new_info.first, new_info.second, best_info.first, best_info.second);
             cout << buff << flush;
 
             best_graph = tmp;

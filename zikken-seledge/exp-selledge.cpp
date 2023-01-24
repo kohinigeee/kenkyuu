@@ -1,4 +1,5 @@
 #include<iostream>
+#include<sys/stat.h>
 
 #include"../header/Header_include.hpp"
 #include"../header/functions.hpp"
@@ -7,6 +8,7 @@ using namespace std;
 
 void output(string path, string name, int s, int h, int r, History& his) {
     string fname = path+"/"+name+".dat";
+    mkdir(path.c_str());
 
     ofstream ofs(fname);
     if ( !ofs ) {
@@ -39,7 +41,7 @@ History exp_hill(int s, int h, int r, int seed, Graph graph) {
 
 void do_hill(int s, int h, int r, int seed, Graph graph) {
     char buff[256];
-
+    
     sprintf(buff, "s%d_h%d_r%d", s, h, r);
     string path = string(buff);
 
@@ -91,37 +93,57 @@ void do_dir1(int s, int h, int r, Graph graph) {
     output(path, name, s, h, r, his);
 }
 
+History exp_dirkick(int s, int h, int r, mt19937& mt, Graph graph) {
+    History his(ON_HISTORY);
+
+    directHillclimbWithKick(graph, mt, 10, directHillclimb_once, -1, 0, his);
+    return his;
+}
+
+void do_dirkick(int s, int h, int r, int seed, Graph graph) {
+    char buff[256];
+
+    sprintf(buff, "s%d_h%d_r%d", s, h, r);
+    string path = string(buff);
+    mt19937 mt;
+    mt.seed(seed);
+
+    History his = exp_dirkick(s, h, r, mt, graph);
+    string name = "directed_withkick";
+    output(path, name, s, h, r, his);
+}
+
+void func(int s, int h, int r, mt19937& mt) {
+    Graph::set_seed(mt());
+
+    Graph graph = Graph::make(s, h, r, 1);
+
+    do_hill(s, h, r, mt(), graph);
+    // do_dir1(s, h, r, graph);
+    // do_dir2(s, h, r, graph);
+    // do_dirkick(s, h, r, mt(), graph);
+
+}
 int main()
 {
     annealing_log_off_all();
     debug_off();
 
-    History hill_his(ON_HISTORY);
-
-    int s = 40;
-    int h = 32;
-    int r = 4;
+    int s = 90;
+    int h = 432;
+    int r = 12;
     int seed = 324;
+
 
     mt19937 seed_gen;
     seed_gen.seed(seed);
 
-    Graph::set_seed(seed_gen());
-    Graph graph = Graph::make(s, h, r, 1);
-    // History his = exp_hill(s, h, r, seed_gen());
-    // History his = exp_dir2(s, h, r);
-    // History his = exp_dir1(s, h, r);
-    // History his2 = exp_dir2(s,h,r);
-    // History his3 = exp_hill(s, h, r, seed_gen());
+    max_hill_length = 100;
 
-
-    // for ( auto p : his.values ) {
-    //     cout << p.first << " " << p.second << endl;
-    // }
-
-    do_hill(s, h, r, seed_gen(), graph);
-    do_dir1(s, h, r, graph);
-    do_dir2(s, h, r, graph);
-
+    for ( int i = 0; i <= 0; ++i ) {
+        int tmps = 3*i+s;
+        cout << "s = " << tmps << ", h = " << h << ", r = " << r << endl;
+        func(tmps, h, r, seed_gen);
+    }
     cout << "finished" << endl;
 }

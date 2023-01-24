@@ -14,6 +14,7 @@ using hillclimb_func = Graph(*)(Graph&, const int n, const int seed, select_func
 int hill_limt_eval = -1;
 
 long long hill_limt_time = -1;
+long long max_hill_length=-1;
 
 void set_hill_limt(int limt ) {
     hill_limt_eval = limt;
@@ -22,6 +23,10 @@ void set_hill_limt(int limt ) {
 //hillclimbのマックス時間を指定する(単位:sec)
 void set_hill_limt_time(long long timev) {
     hill_limt_time = timev; 
+}
+
+void set_max_hill_length(long long value ) {
+    max_hill_length = value;
 }
 
 long long countEdges(Graph& graph) {
@@ -58,7 +63,7 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
     Graph::set_seed(mt());
 
     Graph best = graph;
-    GraphInfo best_info = graph.calcInfo();
+    pair<int, double> best_info = graph.calc_haspl();
 
     set<pair<Edge,Edge>> calced; //計算済みペア
     char buff[256];
@@ -67,6 +72,7 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
 
     long long evalcnt = 0;
     while( limcnt < limn ) {
+        if ( max_hill_length > 0 && history.values.size() >= max_hill_length ) return best;
         
         time_t now_t = clock();
         long long dura_sec = double(now_t-st_t)/CLOCKS_PER_SEC;
@@ -98,24 +104,26 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
             continue;
         }
 
-        GraphInfo new_info = graph.calcInfo();
-        
-        if ( compInfo(new_info, best_info) ) {
+        pair<int, double> new_info = graph.calc_haspl(); 
+        if ( new_info < best_info ) {
 
         // sprintf(buff, "[Log] s=%d, h=%d, r=%d : %d, %.5lf\n", graph.getSum_s(), graph.getSum_h(), graph.get_r(), new_info.get_diam(), new_info.get_haspl());
         // cout << buff << flush;
-
             best_info = new_info;
             best = graph;
             limcnt = 0;
-            
-            history.add(make_pair(new_info.get_diam(), new_info.get_haspl()));
+
+            if ( history.status != NO_HISTORY ) {
+                history.add(make_pair(new_info.first, new_info.second));
+            }
         } else {
             graph.back();
             ++limcnt;
             
             // history.add(make_pair(new_info.get_diam(), new_info.get_haspl()));
+            if ( history.status != NO_HISTORY ) {
             history.add(history.values.back());
+            }
         }
     }
     return best;
@@ -145,30 +153,32 @@ Graph hillclimb( Graph& graph, const double alpha, const int seed, pair<Edge,Edg
 //     return best;
 // }
 
-// //limcnt : 連続キック限界数(未更新が続く最大回数)
-// Graph hillClimbing_mdstkick(Graph& graph, int limt, const double alpha, const int seed,  pair<Edge,Edge>(*select)(Graph&, mt19937&) ) {
-//     mt19937 mt;
-//     mt.seed(seed);
-//     const int s = graph.getSum_s(), h = graph.getSum_h(), r = graph.get_r();
+//limcnt : 連続キック限界数(未更新が続く最大回数)
+Graph hillClimbing_mdstkick(Graph& graph, int limt, const double alpha, const int seed,  pair<Edge,Edge>(*select)(Graph&, mt19937&) ) {
+    mt19937 mt;
+    mt.seed(seed);
+    const int s = graph.getSum_s(), h = graph.getSum_h(), r = graph.get_r();
 
-//     Graph best = graph;
-//     GraphInfo best_info = graph.calcInfo();
-//     int limcnt = 0;
-//     do {
-//         Graph tmp = hillclimb(graph, alpha, mt(), select);
-//         GraphInfo new_info = tmp.calcInfo();
+    Graph best = graph;
+    pair<long long, double> best_info = graph.calc_haspl();
+    int limcnt = 0;
+    do {
+        Graph tmp = hillclimb(graph, alpha, mt(), select);
+        // GraphInfo new_info = tmp.calcInfo();
+        pair<long long, double> ph = tmp.calc_haspl();
 
-//         if ( compInfo(new_info, best_info) ) {
-//             best= tmp;
-//             best_info = new_info;
-//             limcnt = 0;
-//         }
-//         graph = makeMDTgraph(best);
-//         graph.linkLoops();
-//         ++limcnt;
-//     } while( limcnt <= limt );
-//     return best;
-// }
+        if ( ph < best_info  ) {
+            cout << "new = " << ph.first << ", " << ph.second << " : prev = " << best_info.first << ", " << best_info.second << endl;
+            best= tmp;
+            best_info = ph;
+            limcnt = 0;
+        }
+        graph = makeMDTgraph(best);
+        graph.linkLoops();
+        ++limcnt;
+    } while( limcnt <= limt );
+    return best;
+}
 
 // Graph hillClimbing_mdstkick(Graph& graph, const int n, const int seed,  pair<Edge,Edge>(*select)(Graph&, mt19937&) ) {
 

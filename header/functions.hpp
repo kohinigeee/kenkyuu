@@ -73,4 +73,10 @@ vector<int> makeRandomTree(int s, int r, mt19937& mt) {
 
     return p;
 }
+
+void printvec(vector<vector<int>> & A ) {
+    for ( auto tmp : A ) {
+        for ( auto v : tmp ) cout << v << " "; cout << endl;
+    }
+}
 #endif

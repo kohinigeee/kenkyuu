@@ -25,8 +25,8 @@ pair<long long, int> calcEdgeCenter(int a, int b, vector<vector<long long>>& d) 
             ming = tmpv; set = 0;
         }
         if ( tmpv == ming ) {
-            if ( d[a][i] <= d[b][i] ) set = set | bbig;
-            if ( d[a][i] >= d[b][i] ) set = set | abig;
+            if ( d[a][i] < d[b][i] ) set = set | bbig;
+            if ( d[a][i] > d[b][i] ) set = set | abig;
         }
     }
 

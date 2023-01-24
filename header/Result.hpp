@@ -19,7 +19,10 @@ class History {
     int status;
     vector<pair<int, double>> values;
 
-    History( int sta ) : status(sta) {}
+    History( int sta ) : status(sta) {
+        if ( sta == NO_HISTORY ) values.push_back(make_pair(-1, -1));
+    }
+
 
     void add(pair<int,double> p ) { 
         if ( status == NO_HISTORY ) return;

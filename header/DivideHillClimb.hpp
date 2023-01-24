@@ -57,6 +57,7 @@ Graph divideHillClimb( const divideInfo& dinfo, const double alpha, const int se
         cout << msg << endl;
         exit(1);
     }
+    ans.linkLoops();
     return ans;
 }
 
@@ -67,6 +68,7 @@ Graph divideHillclimb_1(int s, int h, int r, const int seed) {
     const double alpha = 0.6;
 
     divideInfo dinfo = divideInfo::makeDivide_ports(s, h, r);
+    
     Graph best = divideHillClimb(dinfo, alpha, seed, select_edges_hl, hillclimb);
     return best;
 }

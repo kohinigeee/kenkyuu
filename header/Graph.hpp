@@ -5,6 +5,8 @@
 #include"Exeception.hpp"
 #include"GraphResult.hpp"
 #include"PathTree.hpp"
+#include"functions.hpp"
+#include"BitMatrix.hpp"
 
 #include<vector>
 #include<iostream>
@@ -16,6 +18,9 @@
 #include<map>
 #include<algorithm>
 #include<thread>
+#include<queue>
+#include<bit>
+#include<bitset>
 
 using graph_info_t = map<string, long long>;
 
@@ -56,6 +61,13 @@ class Graph {
     bool isPropEdge( Edge::edgeType , G_no, Node_no, Edge_no );
 
     public:
+
+    //追加
+    pair<int, long long> calc_dis();
+    pair<int, long long> calc_dis2();
+    pair<int, long long> calc_dis3();
+    vector<vector<int>> calc_nbr();
+    pair<int, double> calc_haspl();
 
     //正しいグラフ構成かを判定する
     bool isPropGraph();
@@ -156,6 +168,8 @@ class Graph {
 
     //すべてのGraphPartを統合したグラフに変形する
     Graph integrate();
+
+    void unlock();
 
     //グラフ作成関数
     static Graph make(int s, int h, int r, int g);
@@ -1144,5 +1158,263 @@ void Graph::toDot( string fname, const Graph& graph, double _rd, string label) {
     ofs.close();
 }
 
+using dis_t = int;
+void print_bin(vector<vector<dis_t>>& A ) {
+    for ( auto a : A ) {
+        for ( auto p : a ) {
+            cout << static_cast<std::bitset<32> >(p);
+        }
+        cout << endl;
+    }
+}
+
+
+vector<vector<int>> Graph::calc_nbr() {
+    vector<vector<int>> nbr;
+
+    for ( int i = 0; i < s; ++i ) {
+        vector<int> tmp;
+        Switch& sw = getSwitch(G_no(0), Node_no(i));
+        for ( Edge e : sw.getEdges() ) {
+            if ( e.getType() != Edge::edgeType::SWITCH ) continue;
+            int to_no = e.getNode().getNo();
+            tmp.push_back(to_no); 
+        }
+        nbr.push_back(tmp);
+    }
+    return nbr;
+}
+
+pair<int, long long> Graph::calc_dis() {
+    int level = 1;
+    long long dis = 0;
+    int diam = 2;
+    long long cnt = 0;
+
+    vector<vector<int>> nbr = calc_nbr();
+    vector<int> hdgree;
+
+    for ( int i = 0; i < s; ++i ) {
+        hdgree.push_back(getSwitch(G_no(0), Node_no(i)).get_hsize());
+    }
+    for ( int i = 0; i < s; ++i ) {
+        if ( hdgree[i] > 1 ) dis += hdgree[i]*(hdgree[i]-1)/2;
+    }
+    
+    vector<vector<int>> A ( s, vector<int>(s, 0));
+    vector<vector<int>> B ( s, vector<int>(s, 0));
+
+    for ( int i = 0; i < s; ++i ) A[i][i] = B[i][i] = 1;
+
+    while(true) {
+        for ( int i = 0; i < s; ++i ) {
+            for ( int n : nbr[i] ) {
+                for ( int j = 0; j < s; ++j ) {
+                    ++cnt;
+                    if ( B[i][j] == 1 || A[n][j] == 1 ) B[i][j] = 1;
+                }
+            }
+        }
+
+        long long tmpdis = 0;
+        for ( int i = 0; i < s; ++i ) {
+            for ( int j = 0; j < s; ++j ) {
+                if ( A[i][j] != B[i][j] ) {
+                    tmpdis += hdgree[i]*hdgree[j]*(level+2);
+                    if ( hdgree[j] > 0 && hdgree[i] > 0 ) diam = level+2;
+                }
+            }
+        }
+        dis += tmpdis/2;
+
+        int num = 0;
+        for ( int i = 0; i < s; ++i ) {
+            for ( int j = 0; j < s; ++j ) {
+                num += B[i][j];
+            }
+        }
+        if ( num == s*s ) break;
+        // printvec(B);
+        swap(A,B);
+        ++level;
+    }
+
+    // cout << "dis = " << dis << ", cnt = " << cnt << endl;
+    return make_pair(diam, dis);
+}
+
+pair<int, long long> Graph::calc_dis2() {
+    int level = 1;
+    long long dis = 0;
+    int diam = 2;
+    long long cnt = 0;
+    int bitcnt = s*s;
+
+    vector<vector<int>> nbr = calc_nbr();
+    vector<int> hdgree;
+    queue<pair<int,int>> new_bits;
+
+    for ( int i = 0; i < s; ++i ) {
+        hdgree.push_back(getSwitch(G_no(0), Node_no(i)).get_hsize());
+    }
+    for ( int i = 0; i < s; ++i ) {
+        if ( hdgree[i] > 1 ) dis += hdgree[i]*(hdgree[i]-1)/2;
+    }
+
+    
+    vector<vector<int>> A ( s, vector<int>(s, 0));
+    vector<vector<int>> B ( s, vector<int>(s, 0));
+
+    for ( int i = 0; i < s; ++i ) A[i][i] = B[i][i] = 1;
+    bitcnt -= s;
+
+    for ( int i = 0; i < s; ++i ) new_bits.push(make_pair(i, i));
+
+
+    while(true) {
+        int tmp_size = new_bits.size();
+        for ( int _ = 0; _ < tmp_size; ++_ ) {
+            pair<int,int> newbit = new_bits.front(); new_bits.pop();
+            for ( auto n : nbr[newbit.first] ) {
+                ++cnt;
+                if ( B[n][newbit.second] == 0 ) {
+                    B[n][newbit.second] = 1;
+                    new_bits.push(make_pair(n, newbit.second));
+                    --bitcnt;
+                }
+            }
+        }
+
+
+        long long tmpdis = 0;
+        for ( int i = 0; i < s; ++i ) {
+            for ( int j = 0; j < s; ++j ) {
+                if ( A[i][j] != B[i][j] ) {
+                    tmpdis += hdgree[i]*hdgree[j]*(level+2);
+                    if ( hdgree[j] > 0 && hdgree[i] > 0 ) diam = level+2;
+                }
+            }
+        }
+        dis += tmpdis/2;
+
+        if ( bitcnt == 0 ) break; 
+        // int num = 0;
+        // for ( int i = 0; i < s; ++i ) {
+        //     for ( int j = 0; j < s; ++j ) {
+        //         num += B[i][j];
+        //     }
+        // }
+        // if ( num == s*s ) break;
+        // printvec(B);
+        A = B;
+        ++level;
+    }
+
+    // cout << "calc_dis2 : dis = " << dis << ", cnt = " << cnt << endl;
+    return make_pair(diam, dis);
+}
+
+void change(vector<dis_t>& A, int bitsize, int ele_no, int bit_no, int value) {
+        if ( value == 0 ) {
+            A[ele_no] = A[ele_no]&(~(1<<(bitsize-bit_no-1)));
+        } else {
+            A[ele_no] = A[ele_no]|(1<<(bitsize-bit_no-1));
+        }
+}
+
+void get(vector<dis_t>& A, int bitsize, int ele_no, int bit_no) {
+        int ans = ((A[ele_no]>>(bitsize-bit_no-1))&1);
+}
+
+
+pair<int, long long> Graph::calc_dis3() {
+    int level = 1;
+    long long dis = 0;
+    int diam = 2;
+    long long cnt = 0;
+    int bit_size = sizeof(dis_t)*8;
+
+    vector<vector<int>> nbr = calc_nbr();
+    vector<int> hdgree;
+
+    for ( int i = 0; i < s; ++i ) {
+        hdgree.push_back(getSwitch(G_no(0), Node_no(i)).get_hsize());
+    }
+    for ( int i = 0; i < s; ++i ) {
+        if ( hdgree[i] > 1 ) dis += hdgree[i]*(hdgree[i]-1)/2;
+    }
+
+    int ele_size = s/bit_size;
+    if ( s%bit_size != 0 ) ++ele_size; 
+
+    vector<vector<dis_t>> A(s, vector<dis_t>(ele_size, 0));
+    vector<vector<dis_t>> B(s, vector<dis_t>(ele_size, 0));
+
+    for ( int i = 0; i < s; ++i ) {
+        int ele_no = i/bit_size;
+        int bit_no = i%bit_size;
+
+        A[i][ele_no] = dis_t(1<<(bit_size-bit_no-1));
+        B[i][ele_no] = dis_t(1<<(bit_size-bit_no-1));
+    }
+
+    while(true) {
+        for ( int i = 0; i < s; ++i ) {
+            for ( int n : nbr[i] ) {
+                for ( int j = 0; j < ele_size; ++j ) {
+                    B[i][j] = B[i][j]|A[n][j];
+                }
+            }
+        }
+
+        long long tmpdis = 0;
+        for ( int i = 0; i < s; ++i ) {
+            int no = -1;
+            for ( int j = 0; j < ele_size; ++j ) {
+                for ( int k = bit_size-1;  k >= 0; --k ) {
+                   ++no;
+                    if ( (B[i][j]>>k & 1) ^ (A[i][j]>>k & 1) ) {
+                    tmpdis += hdgree[i]*hdgree[no]*(level+2);
+                    if ( hdgree[no] > 0 && hdgree[i] > 0 ) diam = level+2;
+                    }
+                }
+            }
+        }
+        dis += tmpdis/2;
+        
+        int num = 0;
+        for ( int i = 0; i < s; ++i ) {
+            for ( int j = 0; j < ele_size; ++j ) {
+                num += __popcount(B[i][j]);
+            }
+        }
+        if ( num == s*s ) break;
+        // printvec(B);
+        swap(A,B);
+        ++level;
+    }
+
+    // cout << "dis = " << dis << ", cnt = " << cnt << endl;
+    return make_pair(diam, dis);
+}
+
+pair<int, double> Graph::calc_haspl() {
+    pair<int, long long> p = calc_dis3();
+    return make_pair(p.first, double(p.second)/(h*(h-1)/2));
+}
+
+void Graph::unlock() {
+    for ( int i = 0; i < s; ++i ) {
+        Switch& sw = getSwitch(G_no(0), Node_no(i));
+        for ( int j = 0; j < r; ++j ) {
+            Edge& e = sw.getEdge(Edge_no(j));
+            e.setStatus(Edge::edgeStatus::UNLOCK);
+        }
+    }
+    for ( int i = 0; i < parts[0].get_hsize(); ++i ) {
+        Edge& e = parts[0].get_host(Node_no(i)).getEdge();
+        e.setStatus(Edge::edgeStatus::UNLOCK);
+    }
+}
 int Graph::graph_seed = 10;
 #endif

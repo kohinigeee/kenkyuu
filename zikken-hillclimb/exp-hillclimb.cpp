@@ -185,7 +185,7 @@ void exp_directhillclimb(vector<Results>& results, string name, int s, ClimbPara
         Graph::set_seed(seed_gen());
         mt19937 mt; mt.seed(seed_gen());
         Graph graph = Graph::make(s, params.h, params.r, 1);
-        Graph best = directHillclimbWithKick(graph, mt, params.limt, directHillclimb_once_2, limt_time);
+        Graph best = directHillclimbWithKick(graph, mt, params.limt, directHillclimb_once, limt_time);
 
         mx.lock();
         results[idx].add_result(best); 
@@ -274,7 +274,7 @@ int main()
 
     const int seed = 2847;
     const int limt = 10;
-    const int exe = 3;
+    const int exe = 1;
     double alpha = 0.5;
 
     mt19937 mt;
@@ -282,17 +282,17 @@ int main()
 
     vector<string> paths;
     // paths.push_back("h32_r4");
-    paths.push_back("h80_r6");
-    paths.push_back("h128_r24");
-    // paths.push_back("h432_r12");
+    // paths.push_back("h80_r6");
+    // paths.push_back("h128_r24");
+    paths.push_back("h432_r12");
     // paths.push_back("h1281_r21");
     // paths.push_back("h1024_r5");
 
     vector<ClimbParams> params;
     // params.push_back(ClimbParams(28, 10, 32, 4, limt, exe, mt(), alpha));
-    params.push_back(ClimbParams(35, 10, 80, 6, limt, exe, mt(), alpha));
-    params.push_back(ClimbParams(7, 10, 128, 24, limt, exe, mt(), alpha));
-    // params.push_back(ClimbParams(80, 10, 432, 12, limt, exe, mt(), alpha));
+    // params.push_back(ClimbParams(35, 10, 80, 6, limt, exe, mt(), alpha));
+    // params.push_back(ClimbParams(7, 10, 128, 24, limt, exe, mt(), alpha));
+    params.push_back(ClimbParams(90, 5, 432, 12, limt, exe, mt(), alpha));
     // params.push_back(ClimbParams(75, 35, 1281, 21, limt, exe, mt(), alpha));
     // params.push_back(ClimbParams(750, 1, 1024, 5, limt, exe, mt(), alpha));
 

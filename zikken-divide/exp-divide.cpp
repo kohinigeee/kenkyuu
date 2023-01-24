@@ -21,7 +21,7 @@ void func_hill(int s, int h, int r, string path, const int seed ) {
     output(path, "hillclimb", info, dura);
 }
 
-//整数計画利用
+//整数計画利
 void func_divide1(int s, int h, int r, string path, const int seed ) {
     time_t st_time = clock();
     Graph best = divideHillclimb_1(s, h, r, seed);

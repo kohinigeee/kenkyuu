@@ -10,6 +10,8 @@ using namespace std;
 
 vector<int> divideHosts(const int r, const int h, const vector<int>& nodes );
 
+double divide_beta = 0.8;
+
 class divideInfo {
     public:
     int r, h, s;
@@ -93,7 +95,7 @@ divideInfo divideInfo::makeDivide ( const int s, const int h, const int r ) {
 //ports: (nr-n)をt:1-tの割合で振り分け( t : グループで使用するポートの割合) 
 divideInfo divideInfo::makeDivide_ports( const int s, const int h, const int r ) {
     vector<int> nodes, hosts, ports;
-    double t = 0.8; //ポートの振り分け率
+    double t = divide_beta; //ポートの振り分け率
 
     int groups = sqrt(s);
     if ( groups*groups < s ) ++groups;
@@ -114,6 +116,9 @@ divideInfo divideInfo::makeDivide_ports( const int s, const int h, const int r )
 
     for ( int i = 0; i < groups; ++i ) {
         if ( nodes[i]*r <= hosts[i]+ports[i] ) {
+            for ( auto n : nodes ) cout << n << " "; cout << endl;
+            for ( auto h : hosts ) cout << h << " "; cout << endl;
+            for ( auto p : ports ) cout << p << " "; cout << endl;
             cout << "[Error] divideInfo::makeDivide made invalid information" << endl;
             exit(1);
         }
@@ -167,14 +172,16 @@ vector<int> divideHosts(const int r, const int h, const vector<int>& nodes )  {
         int amari = ( h_size.first%noOfGroups1 == 0 ) ? 0 : 1;
         // Rational min1 = Rational(h_size.first/noOfGroups1, noOfNodes1*r);
         // Rational max1 = Rational(h_size.first/noOfGroups1+amari, noOfNodes1*r);
-        double min1 = (double)(h_size.first/noOfGroups1)/noOfNodes1*r;
-        double max1 = (double)(h_size.first/noOfGroups1+amari)/noOfNodes1*r;
+        double min1 = (double)(h_size.first/noOfGroups1)/(noOfNodes1*r);
+        double max1 = (double)(h_size.first/noOfGroups1+amari)/(noOfNodes1*r);
 
+        if ( min1 >= 1 || max1 >= 1 ) continue;
         amari = ( h_size.second%noOfGropus2 == 0 ) ? 0 : 1;
         // Rational min2 = Rational(h_size.second/noOfGropus2, noOfNodes2*r);
         // Rational max2 = Rational(h_size.second/noOfGropus2+amari, noOfNodes2*r);
         double min2 = double(h_size.second/noOfGropus2)/(noOfGropus2*r);
         double max2 = double(h_size.second/noOfGropus2+amari)/(noOfGropus2*r);
+        if ( min2 >= 1 || max2 >= 1 ) continue;
 
         // Rational tmp = max(max1, max2)-min(min1, min2);
 
@@ -190,6 +197,7 @@ vector<int> divideHosts(const int r, const int h, const vector<int>& nodes )  {
             bestratio = tmp;
         }
     }
+
 
     if ( best_hsize == make_pair(-1, -1) ) {
         return ans;
